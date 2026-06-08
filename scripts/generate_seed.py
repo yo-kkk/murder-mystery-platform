@@ -291,10 +291,10 @@ for line in RAW.strip().split('\n'):
     max_d_val = f"{max_d}" if max_d != min_d else "NULL"
 
     lines.append(
-        f"  (uuid_generate_v4(), '{escape_sql(title)}', {min_p}, {max_p}, "
-        f"{rec_min}, {rec_max}, {min_d}, "
+        f"  (uuid_generate_v4(), '{escape_sql(title)}', '', '{{}}', 'intermediate', "
+        f"{min_p}, {max_p}, {rec_min}, {rec_max}, {min_d}, "
         f"{'NULL' if max_d == min_d else max_d}, "
-        f"{'true' if requires_gm else 'false'})"
+        f"{'true' if requires_gm else 'false'}, 0, 0)"
     )
 
 ROWS = ',\n'.join(lines)
@@ -317,19 +317,11 @@ alter table games
   add column if not exists requires_gm boolean not null default false;
 
 -- 3. 게임 데이터 삽입 ({len(lines)}개)
-insert into games (id, title, min_players, max_players, rec_min_players, rec_max_players, duration_minutes, max_duration_minutes, requires_gm)
+insert into games (id, title, description, themes, difficulty, min_players, max_players, rec_min_players, rec_max_players, duration_minutes, max_duration_minutes, requires_gm, avg_rating, review_count)
 values
 {ROWS}
 ;
 
--- 4. 필수 필드 기본값 업데이트
-update games set
-  description = '',
-  themes = '{{}}',
-  difficulty = 'intermediate',
-  avg_rating = 0,
-  review_count = 0
-where description is null or description = '';
 """
 
 output_path = '/Users/yobiyo/Desktop/projMM/supabase/seed_games.sql'
