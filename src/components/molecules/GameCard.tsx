@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { Users, Clock, Skull } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { StarRating } from '@/components/atoms/StarRating'
-import { cn, DIFFICULTY_LABEL, DIFFICULTY_COLOR, THEME_LABEL, formatDuration } from '@/lib/utils'
+import { cn, DIFFICULTY_LABEL, DIFFICULTY_COLOR, formatDurationRange } from '@/lib/utils'
 import type { Game } from '@/types'
 
 interface GameCardProps {
@@ -48,22 +48,14 @@ export function GameCard({ game, isPlayed, className }: GameCardProps) {
 
           <StarRating rating={game.avgRating} size="sm" />
 
-          <div className="flex flex-wrap gap-1">
-            {game.themes.slice(0, 2).map(theme => (
-              <Badge key={theme} variant="outline" className="text-xs border-[var(--border)] text-muted-foreground">
-                {THEME_LABEL[theme]}
-              </Badge>
-            ))}
-          </div>
-
           <div className="flex items-center gap-3 text-xs text-muted-foreground pt-1">
+            <span className="flex items-center gap-1">
+              <Clock size={11} />
+              {formatDurationRange(game.durationMinutes, game.maxDurationMinutes)}
+            </span>
             <span className="flex items-center gap-1">
               <Users size={11} />
               {game.minPlayers}~{game.maxPlayers}인
-            </span>
-            <span className="flex items-center gap-1">
-              <Clock size={11} />
-              {formatDuration(game.durationMinutes)}
             </span>
             <span className={cn('ml-auto font-medium', DIFFICULTY_COLOR[game.difficulty])}>
               {DIFFICULTY_LABEL[game.difficulty]}

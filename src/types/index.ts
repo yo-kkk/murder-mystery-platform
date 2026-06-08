@@ -11,7 +11,11 @@ export interface Game {
   difficulty: Difficulty
   minPlayers: number
   maxPlayers: number
+  recMinPlayers?: number
+  recMaxPlayers?: number
   durationMinutes: number
+  maxDurationMinutes?: number
+  requiresGm: boolean
   imageUrl?: string | null
   avgRating: number
   reviewCount: number

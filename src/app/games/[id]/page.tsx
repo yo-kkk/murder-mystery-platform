@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import { ArrowLeft, Users, Clock, MapPin, BookmarkPlus } from 'lucide-react'
+import { ArrowLeft, Users, Clock, MapPin, BookmarkPlus, Building2 } from 'lucide-react'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { StarRating } from '@/components/atoms/StarRating'
@@ -70,6 +70,28 @@ export default async function GameDetailPage({ params }: { params: Promise<{ id:
         <h2 className="text-sm font-semibold text-[var(--gold)] mb-2 uppercase tracking-wider">시놉시스</h2>
         <p className="text-sm text-muted-foreground leading-relaxed italic">&ldquo;{game.description}&rdquo;</p>
       </div>
+
+      {/* Publisher info */}
+      {(game.publisher || game.releaseYear) && (
+        <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-4">
+          <h2 className="text-sm font-semibold text-[var(--gold)] mb-3 uppercase tracking-wider">제작사 정보</h2>
+          <div className="flex flex-col gap-2">
+            {game.publisher && (
+              <div className="flex items-center gap-2 text-sm">
+                <Building2 size={14} className="text-muted-foreground shrink-0" />
+                <span className="text-muted-foreground">제작사</span>
+                <span className="text-foreground font-medium ml-auto">{game.publisher}</span>
+              </div>
+            )}
+            {game.releaseYear && (
+              <div className="flex items-center gap-2 text-sm">
+                <span className="text-muted-foreground pl-[22px]">출시년도</span>
+                <span className="text-foreground font-medium ml-auto">{game.releaseYear}년</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Actions */}
       <div className="flex gap-3">

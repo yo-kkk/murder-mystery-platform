@@ -45,6 +45,11 @@ export function formatDuration(minutes: number): string {
   return mins > 0 ? `${hours}시간 ${mins}분` : `${hours}시간`
 }
 
+export function formatDurationRange(min: number, max?: number): string {
+  if (!max || max === min) return formatDuration(min)
+  return `${formatDuration(min)}~${formatDuration(max)}`
+}
+
 export function formatDate(dateStr: string): string {
   const date = new Date(dateStr)
   return date.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })
