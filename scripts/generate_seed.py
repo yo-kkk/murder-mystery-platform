@@ -297,6 +297,8 @@ for line in RAW.strip().split('\n'):
         f"{'true' if requires_gm else 'false'})"
     )
 
+ROWS = ',\n'.join(lines)
+
 sql = f"""-- 기존 게임 데이터 초기화 후 실제 게임 목록 삽입
 -- Supabase SQL Editor에서 실행하세요
 
@@ -317,7 +319,7 @@ alter table games
 -- 3. 게임 데이터 삽입 ({len(lines)}개)
 insert into games (id, title, min_players, max_players, rec_min_players, rec_max_players, duration_minutes, max_duration_minutes, requires_gm)
 values
-{chr(10).join(lines[:-1] + [lines[-1].rstrip(',')])}
+{ROWS}
 ;
 
 -- 4. 필수 필드 기본값 업데이트
