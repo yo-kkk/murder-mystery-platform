@@ -1,0 +1,29 @@
+[
+  {
+    "id": "record-001",
+    "gameId": "game-004",
+    "venueId": "venue-003",
+    "playedAt": "2025-11-15",
+    "companions": ["지민", "현수", "은지"],
+    "isPublic": true,
+    "myReviewId": "review-001"
+  },
+  {
+    "id": "record-002",
+    "gameId": "game-001",
+    "venueId": "venue-001",
+    "playedAt": "2025-09-22",
+    "companions": ["현수", "승우"],
+    "isPublic": true,
+    "myReviewId": "review-002"
+  },
+  {
+    "id": "record-003",
+    "gameId": "game-006",
+    "venueId": "venue-002",
+    "playedAt": "2026-01-10",
+    "companions": ["지민", "은지", "태양", "민서"],
+    "isPublic": false,
+    "myReviewId": null
+  }
+]

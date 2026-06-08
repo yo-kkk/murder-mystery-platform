@@ -1,65 +1,85 @@
-import Image from "next/image";
+import { Search, SlidersHorizontal } from 'lucide-react'
+import { GameCard } from '@/components/molecules/GameCard'
+import { Badge } from '@/components/ui/badge'
+import type { Game } from '@/types'
+import gamesData from '../../mocks/data/games.json'
 
-export default function Home() {
+const games = gamesData as Game[]
+
+export default function HomePage() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="space-y-6">
+      {/* Hero */}
+      <div className="text-center py-8 space-y-3">
+        <h1
+          className="text-3xl font-bold tracking-widest uppercase"
+          style={{ color: 'var(--gold)', fontFamily: 'Georgia, serif' }}
+        >
+          Murder Mystery
+        </h1>
+        <p className="text-muted-foreground text-sm">
+          플레이한 게임을 기록하고, 평가하고, 새로운 사건을 찾아보세요
+        </p>
+      </div>
+
+      {/* Search */}
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <input
+            type="text"
+            placeholder="게임 검색..."
+            className="w-full pl-9 pr-4 py-2.5 rounded-lg bg-[var(--card)] border border-[var(--border)] text-foreground placeholder:text-muted-foreground text-sm focus:outline-none focus:border-primary/60 transition-colors"
+          />
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+        <button className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-[var(--card)] border border-[var(--border)] text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors text-sm">
+          <SlidersHorizontal size={15} />
+          필터
+        </button>
+      </div>
+
+      {/* Filter badges */}
+      <div className="flex flex-wrap gap-2">
+        {['전체', '공포', '빅토리안', '역사', '판타지', 'SF', '현대'].map(tag => (
+          <Badge
+            key={tag}
+            variant={tag === '전체' ? 'default' : 'outline'}
+            className={
+              tag === '전체'
+                ? 'bg-primary text-white cursor-pointer'
+                : 'border-[var(--border)] text-muted-foreground cursor-pointer hover:border-primary/50 hover:text-foreground transition-colors'
+            }
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            {tag}
+          </Badge>
+        ))}
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-3 gap-3">
+        {[
+          { label: '전체 게임', value: games.length },
+          { label: '내가 플레이', value: 3 },
+          { label: '이번 달 추가', value: 2 },
+        ].map(({ label, value }) => (
+          <div key={label} className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-3 text-center">
+            <div className="text-xl font-bold text-primary">{value}</div>
+            <div className="text-xs text-muted-foreground mt-0.5">{label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Game grid */}
+      <section>
+        <h2 className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wider">
+          모든 게임 <span className="text-primary">{games.length}</span>
+        </h2>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          {games.map(game => (
+            <GameCard key={game.id} game={game} isPlayed={['game-001', 'game-004', 'game-006'].includes(game.id)} />
+          ))}
         </div>
-      </main>
+      </section>
     </div>
-  );
+  )
 }

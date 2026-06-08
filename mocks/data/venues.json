@@ -1,0 +1,46 @@
+[
+  {
+    "id": "venue-001",
+    "name": "미스터리 파티룸 홍대점",
+    "type": "party_room",
+    "address": "서울시 마포구 홍익로 23-5, 3층",
+    "district": "홍대",
+    "phone": "02-1234-5678",
+    "reservationUrl": "https://example.com/reserve",
+    "avgRating": 4.5,
+    "availableGames": ["game-001", "game-002", "game-004"]
+  },
+  {
+    "id": "venue-002",
+    "name": "보드라이프 강남점",
+    "type": "board_game_cafe",
+    "address": "서울시 강남구 테헤란로 152, 2층",
+    "district": "강남",
+    "phone": "02-9876-5432",
+    "reservationUrl": "https://example.com/reserve2",
+    "avgRating": 4.2,
+    "availableGames": ["game-001", "game-003", "game-005", "game-006"]
+  },
+  {
+    "id": "venue-003",
+    "name": "수상한 방 이태원점",
+    "type": "party_room",
+    "address": "서울시 용산구 이태원로 177, 지하 1층",
+    "district": "이태원",
+    "phone": "02-5555-7777",
+    "reservationUrl": null,
+    "avgRating": 4.7,
+    "availableGames": ["game-002", "game-004", "game-006"]
+  },
+  {
+    "id": "venue-004",
+    "name": "퍼즐카페 신촌점",
+    "type": "board_game_cafe",
+    "address": "서울시 서대문구 신촌로 89, 4층",
+    "district": "신촌",
+    "phone": "02-3333-4444",
+    "reservationUrl": "https://example.com/reserve4",
+    "avgRating": 3.9,
+    "availableGames": ["game-001", "game-003", "game-005"]
+  }
+]
