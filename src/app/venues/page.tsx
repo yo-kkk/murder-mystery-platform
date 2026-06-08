@@ -1,15 +1,15 @@
 import { MapPin, Phone, Star } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { VENUE_TYPE_LABEL } from '@/lib/utils'
-import type { Venue } from '@/types'
-import venuesData from '../../../mocks/data/venues.json'
+import { getVenues } from '@/lib/supabase/queries'
 
-const venues = venuesData as Venue[]
+export const revalidate = 60
 
-export default function VenuesPage() {
+export default async function VenuesPage() {
+  const venues = await getVenues()
+
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="space-y-1">
         <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
           <MapPin size={20} className="text-primary" />
@@ -35,7 +35,12 @@ export default function VenuesPage() {
         ))}
       </div>
 
-      {/* Venues list */}
+      {venues.length === 0 && (
+        <div className="text-center py-12 text-muted-foreground text-sm">
+          등록된 장소가 없어요
+        </div>
+      )}
+
       <div className="space-y-3">
         {venues.map(venue => (
           <div key={venue.id} className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-4 space-y-3">
@@ -53,38 +58,23 @@ export default function VenuesPage() {
                 </div>
               </div>
               {venue.reservationUrl && (
-                <button className="text-xs px-3 py-1.5 rounded bg-primary/20 border border-primary/50 text-primary hover:bg-primary/30 transition-colors">
+                <a
+                  href={venue.reservationUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs px-3 py-1.5 rounded bg-primary/20 border border-primary/50 text-primary hover:bg-primary/30 transition-colors"
+                >
                   예약하기
-                </button>
+                </a>
               )}
             </div>
 
             <div className="space-y-1 text-xs text-muted-foreground">
-              <p className="flex items-center gap-1.5">
-                <MapPin size={11} /> {venue.address}
-              </p>
-              {venue.phone && (
-                <p className="flex items-center gap-1.5">
-                  <Phone size={11} /> {venue.phone}
-                </p>
-              )}
+              <p className="flex items-center gap-1.5"><MapPin size={11} /> {venue.address}</p>
+              {venue.phone && <p className="flex items-center gap-1.5"><Phone size={11} /> {venue.phone}</p>}
             </div>
 
-            <div>
-              <p className="text-xs text-muted-foreground/60 mb-1.5">보유 게임 {venue.availableGames.length}개</p>
-              <div className="flex flex-wrap gap-1">
-                {venue.availableGames.slice(0, 3).map(gid => (
-                  <span key={gid} className="text-xs px-2 py-0.5 rounded bg-[var(--border)] text-muted-foreground">
-                    게임 #{gid.split('-')[1]}
-                  </span>
-                ))}
-                {venue.availableGames.length > 3 && (
-                  <span className="text-xs px-2 py-0.5 rounded bg-[var(--border)] text-muted-foreground">
-                    +{venue.availableGames.length - 3}
-                  </span>
-                )}
-              </div>
-            </div>
+            <p className="text-xs text-muted-foreground/60">보유 게임 {venue.availableGames.length}개</p>
           </div>
         ))}
       </div>

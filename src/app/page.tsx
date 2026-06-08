@@ -1,12 +1,13 @@
 import { Search, SlidersHorizontal } from 'lucide-react'
 import { GameCard } from '@/components/molecules/GameCard'
 import { Badge } from '@/components/ui/badge'
-import type { Game } from '@/types'
-import gamesData from '../../mocks/data/games.json'
+import { getGames } from '@/lib/supabase/queries'
 
-const games = gamesData as Game[]
+export const revalidate = 60
 
-export default function HomePage() {
+export default async function HomePage() {
+  const games = await getGames()
+
   return (
     <div className="space-y-6">
       {/* Hero */}
@@ -59,8 +60,8 @@ export default function HomePage() {
       <div className="grid grid-cols-3 gap-3">
         {[
           { label: '전체 게임', value: games.length },
-          { label: '내가 플레이', value: 3 },
-          { label: '이번 달 추가', value: 2 },
+          { label: '내가 플레이', value: '-' },
+          { label: '이번 달 추가', value: '-' },
         ].map(({ label, value }) => (
           <div key={label} className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-3 text-center">
             <div className="text-xl font-bold text-primary">{value}</div>
@@ -76,7 +77,7 @@ export default function HomePage() {
         </h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           {games.map(game => (
-            <GameCard key={game.id} game={game} isPlayed={['game-001', 'game-004', 'game-006'].includes(game.id)} />
+            <GameCard key={game.id} game={game} />
           ))}
         </div>
       </section>

@@ -3,31 +3,24 @@ import { ArrowLeft, Users, Clock, MapPin, BookmarkPlus } from 'lucide-react'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { StarRating } from '@/components/atoms/StarRating'
-import {
-  DIFFICULTY_LABEL, DIFFICULTY_COLOR, THEME_LABEL, VENUE_TYPE_LABEL,
-  formatDuration
-} from '@/lib/utils'
-import type { Game, Venue } from '@/types'
-import gamesData from '../../../../mocks/data/games.json'
-import venuesData from '../../../../mocks/data/venues.json'
+import { DIFFICULTY_LABEL, DIFFICULTY_COLOR, THEME_LABEL, VENUE_TYPE_LABEL, formatDuration } from '@/lib/utils'
+import { getGame, getGames, getVenuesByGame } from '@/lib/supabase/queries'
 
-const games = gamesData as Game[]
-const venues = venuesData as Venue[]
+export const revalidate = 60
 
-export function generateStaticParams() {
+export async function generateStaticParams() {
+  const games = await getGames()
   return games.map(g => ({ id: g.id }))
 }
 
 export default async function GameDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const game = games.find(g => g.id === id)
-  if (!game) notFound()
+  const [game, venues] = await Promise.all([getGame(id), getVenuesByGame(id)])
 
-  const availableVenues = venues.filter(v => v.availableGames.includes(game.id))
+  if (!game) notFound()
 
   return (
     <div className="space-y-6 max-w-2xl">
-      {/* Back */}
       <Link href="/" className="flex items-center gap-2 text-muted-foreground hover:text-foreground text-sm transition-colors w-fit">
         <ArrowLeft size={15} /> 목록으로
       </Link>
@@ -78,7 +71,7 @@ export default async function GameDetailPage({ params }: { params: Promise<{ id:
         <p className="text-sm text-muted-foreground leading-relaxed italic">&ldquo;{game.description}&rdquo;</p>
       </div>
 
-      {/* Action buttons */}
+      {/* Actions */}
       <div className="flex gap-3">
         <button className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90 transition-colors">
           <BookmarkPlus size={16} /> 플레이 기록 추가
@@ -89,13 +82,13 @@ export default async function GameDetailPage({ params }: { params: Promise<{ id:
       </div>
 
       {/* Venues */}
-      {availableVenues.length > 0 && (
+      {venues.length > 0 && (
         <section>
           <h2 className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wider flex items-center gap-2">
             <MapPin size={14} /> 플레이 가능한 곳
           </h2>
           <div className="space-y-2">
-            {availableVenues.map(venue => (
+            {venues.map(venue => (
               <div key={venue.id} className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-3 flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-foreground">{venue.name}</p>
