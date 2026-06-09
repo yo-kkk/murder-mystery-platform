@@ -27,8 +27,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko" className={`${geist.variable} ${notoSerifKR.variable} h-full antialiased`}>
-      <body className="min-h-full flex justify-center" style={{ backgroundColor: 'oklch(0.09 0.04 245)' }}>
-        <div className="w-full max-w-2xl min-h-screen flex flex-col bg-[var(--background)] relative" style={{ backgroundColor: 'oklch(0.09 0.04 245)' }}>
+      <body className="min-h-full flex justify-center" style={{ backgroundColor: 'oklch(0.12 0.04 245)' }}>
+        <div className="w-full max-w-2xl min-h-screen flex flex-col bg-[var(--background)] relative">
           <Header />
           <main className="flex-1 flex flex-col px-4 py-6 pb-24">
             {children}
