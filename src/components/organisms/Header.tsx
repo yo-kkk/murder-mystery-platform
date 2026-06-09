@@ -2,18 +2,11 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { Search, BookOpen, MapPin, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { NAV } from '@/lib/nav'
 import { createClient } from '@/lib/supabase/browser'
 import { useEffect, useState } from 'react'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
-
-const NAV = [
-  { href: '/games', label: '검색', icon: Search, match: (p: string) => p === '/games' || p.startsWith('/games/') },
-  { href: '/my-records', label: '내 기록', icon: BookOpen, match: (p: string) => p.startsWith('/my-records') },
-  { href: '/venues', label: '장소', icon: MapPin, match: (p: string) => p.startsWith('/venues') },
-  { href: '/profile', label: '프로필', icon: User, match: (p: string) => p.startsWith('/profile') },
-]
 
 export function Header() {
   const pathname = usePathname()
@@ -42,7 +35,7 @@ export function Header() {
         {/* Logo */}
         <Link href="/" className="group">
           <span
-            className="font-semibold text-lg tracking-tight"
+            className="font-semibold text-xl tracking-tight"
             style={{ color: 'var(--gold)', fontFamily: 'var(--font-serif)' }}
           >
             어제의 <span className="text-primary">머미</span>

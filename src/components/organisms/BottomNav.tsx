@@ -2,15 +2,8 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Search, BookOpen, MapPin, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
-
-const NAV = [
-  { href: '/games', label: '검색', icon: Search, match: (p: string) => p === '/games' || p.startsWith('/games/') },
-  { href: '/my-records', label: '내 기록', icon: BookOpen, match: (p: string) => p.startsWith('/my-records') },
-  { href: '/venues', label: '장소', icon: MapPin, match: (p: string) => p.startsWith('/venues') },
-  { href: '/profile', label: '프로필', icon: User, match: (p: string) => p.startsWith('/profile') },
-]
+import { NAV } from '@/lib/nav'
 
 export function BottomNav() {
   const pathname = usePathname()

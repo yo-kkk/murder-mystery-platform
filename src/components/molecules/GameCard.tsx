@@ -46,7 +46,7 @@ export function GameCard({ game, isPlayed, className, overlay }: GameCardProps) 
         {/* Content */}
         <div className="p-3 space-y-2">
           <div>
-            <h3 className="font-semibold text-foreground text-sm leading-tight">{game.title}</h3>
+            <h3 className="font-semibold text-foreground text-base leading-tight">{game.title}</h3>
             {game.subtitle && (
               <p className="text-xs text-muted-foreground mt-0.5 leading-tight">{game.subtitle}</p>
             )}

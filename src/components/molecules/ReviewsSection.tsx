@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { Star, MessageSquare, ArrowUpDown, Check, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, UserRound, Lock } from 'lucide-react'
+import { Star, MessageSquare, ArrowUpDown, Check, UserRound, Lock } from 'lucide-react'
 import { ReviewCard } from './ReviewCard'
+import { Pagination } from '@/components/atoms/Pagination'
 
 interface Review {
   id: string
@@ -216,31 +217,13 @@ export function ReviewsSection({ reviews, myReview, isLoggedIn = true }: Props) 
             ))}
           </div>
 
-          {/* 페이지네이션 */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-1">
-              <button onClick={() => setPage(1)} disabled={page === 1} className="p-1 rounded border border-[var(--border)] text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors">
-                <ChevronsLeft size={13} />
-              </button>
-              <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="p-1 rounded border border-[var(--border)] text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors">
-                <ChevronLeft size={13} />
-              </button>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                <button
-                  key={p}
-                  onClick={() => setPage(p)}
-                  className={`w-6 h-6 rounded text-xs transition-colors ${p === page ? 'bg-primary text-white' : 'text-muted-foreground hover:text-foreground'}`}
-                >
-                  {p}
-                </button>
-              ))}
-              <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="p-1 rounded border border-[var(--border)] text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors">
-                <ChevronRight size={13} />
-              </button>
-              <button onClick={() => setPage(totalPages)} disabled={page === totalPages} className="p-1 rounded border border-[var(--border)] text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors">
-                <ChevronsRight size={13} />
-              </button>
-            </div>
+            <Pagination
+              page={page}
+              totalPages={totalPages}
+              onPageChange={setPage}
+              groupSize={0}
+            />
           )}
         </div>
       )}

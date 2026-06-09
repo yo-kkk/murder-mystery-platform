@@ -1,12 +1,14 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ArrowUpDown, Check, SlidersHorizontal, X, Plus, Heart } from 'lucide-react'
+import { Search, ArrowUpDown, Check, SlidersHorizontal, X, Plus, Heart } from 'lucide-react'
 import { sortGames, type GameSortKey } from '@/lib/utils'
 import { GameCard } from '@/components/molecules/GameCard'
 import { WishlistButton } from '@/components/molecules/WishlistButton'
 import { AddPlayRecordModal } from '@/components/molecules/AddPlayRecordModal'
+import { Pagination } from '@/components/atoms/Pagination'
+import { useClickOutside } from '@/hooks/useClickOutside'
 import type { Game } from '@/types'
 
 const PAGE_SIZE_OPTIONS = [10, 20]
@@ -49,14 +51,10 @@ export function GamesClient({ games, playedIds, wishlistedIds, isLoggedIn }: Pro
   const sortRef = useRef<HTMLDivElement>(null)
   const filterRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (sortRef.current && !sortRef.current.contains(e.target as Node)) setSortOpen(false)
-      if (filterRef.current && !filterRef.current.contains(e.target as Node)) setFilterOpen(false)
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
+  useClickOutside(
+    { ref: sortRef, close: () => setSortOpen(false) },
+    { ref: filterRef, close: () => setFilterOpen(false) }
+  )
 
   const filtered = games.filter(g => {
     if (wishlistFilter && !wishlistedIds.includes(g.id)) return false
@@ -285,44 +283,14 @@ export function GamesClient({ games, playedIds, wishlistedIds, isLoggedIn }: Pro
             ))}
           </div>
 
-          {/* Pagination */}
-          <div className="relative flex items-center justify-center">
-            <div className="absolute right-0">
-              <select
-                value={pageSize}
-                onChange={e => handlePageSizeChange(Number(e.target.value))}
-                className="px-2 py-1.5 rounded-lg border border-[var(--border)] bg-[var(--card)] text-xs text-muted-foreground focus:outline-none focus:border-primary/60 transition-colors"
-              >
-                {PAGE_SIZE_OPTIONS.map(size => (
-                  <option key={size} value={size}>{size}개씩 보기</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="flex items-center gap-1">
-              <button onClick={() => setPage(1)} disabled={page === 1} className="p-1 rounded border border-[var(--border)] text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors">
-                <ChevronsLeft size={13} />
-              </button>
-              <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="p-1 rounded border border-[var(--border)] text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors">
-                <ChevronLeft size={13} />
-              </button>
-              {(() => {
-                const groupStart = Math.floor((page - 1) / 5) * 5 + 1
-                const groupEnd = Math.min(groupStart + 4, totalPages)
-                return Array.from({ length: groupEnd - groupStart + 1 }, (_, i) => groupStart + i).map(p => (
-                  <button key={p} onClick={() => setPage(p)} className={`w-6 h-6 rounded text-xs transition-colors ${p === page ? 'bg-primary text-white' : 'text-muted-foreground hover:text-foreground'}`}>
-                    {p}
-                  </button>
-                ))
-              })()}
-              <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="p-1 rounded border border-[var(--border)] text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors">
-                <ChevronRight size={13} />
-              </button>
-              <button onClick={() => setPage(totalPages)} disabled={page === totalPages} className="p-1 rounded border border-[var(--border)] text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors">
-                <ChevronsRight size={13} />
-              </button>
-            </div>
-          </div>
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+            pageSize={pageSize}
+            pageSizeOptions={PAGE_SIZE_OPTIONS}
+            onPageSizeChange={handlePageSizeChange}
+          />
         </div>
       )}
 

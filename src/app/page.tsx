@@ -2,8 +2,7 @@ import Link from 'next/link'
 import { BookOpen, Search } from 'lucide-react'
 import { HomeGamePreview } from '@/components/molecules/HomeGamePreview'
 import { createClient } from '@/lib/supabase/server'
-import { getGames } from '@/lib/supabase/queries'
-import { supabase as publicClient } from '@/lib/supabase/client'
+import { getTopGames, getPublicStats } from '@/lib/supabase/queries'
 import { redirect } from 'next/navigation'
 
 export const dynamic = 'force-dynamic'
@@ -12,38 +11,35 @@ export default async function HomePage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  if (user) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('nickname')
-      .eq('id', user.id)
-      .single()
-    if (!profile?.nickname) {
-      redirect('/onboarding')
-    }
+  // 공개 데이터(캐시) + 유저 데이터 동시 fetch
+  const [previewGames, stats, userData] = await Promise.all([
+    getTopGames(20),
+    getPublicStats(),
+    user ? Promise.all([
+      supabase.from('profiles').select('nickname').eq('id', user.id).single(),
+      supabase.from('play_records').select('game_id').eq('user_id', user.id),
+      supabase.from('wishlists').select('game_id').eq('user_id', user.id),
+    ]) : Promise.resolve(null),
+  ])
+
+  if (user && userData) {
+    const [profileRes] = userData
+    if (!profileRes.data?.nickname) redirect('/onboarding')
   }
 
-  const allGames = await getGames()
-
-  const [{ count: totalGames }, { count: totalReviews }] = await Promise.all([
-    publicClient.from('games').select('*', { count: 'exact', head: true }),
-    publicClient.from('reviews').select('*', { count: 'exact', head: true }).eq('is_public', true),
-  ])
+  const { totalGames, totalReviews } = stats
 
   let playedIds: string[] = []
   let wishlistedIds: string[] = []
   let wishlistCount = 0
-  if (user) {
-    const [recordsRes, wishlistRes] = await Promise.all([
-      supabase.from('play_records').select('game_id').eq('user_id', user.id),
-      supabase.from('wishlists').select('game_id').eq('user_id', user.id),
-    ])
+  if (userData) {
+    const [, recordsRes, wishlistRes] = userData
     playedIds = (recordsRes.data ?? []).map((r: { game_id: string }) => r.game_id)
     wishlistedIds = (wishlistRes.data ?? []).map((r: { game_id: string }) => r.game_id)
     wishlistCount = wishlistedIds.length
   }
 
-  const playedGames = allGames.filter(g => playedIds.includes(g.id))
+  const playedGames = previewGames.filter(g => playedIds.includes(g.id))
   const totalMinutes = playedGames.reduce((sum, g) => {
     const mid = g.maxDurationMinutes
       ? Math.round((g.durationMinutes + g.maxDurationMinutes) / 2)
@@ -54,12 +50,11 @@ export default async function HomePage() {
   // 비로그인 상태
   if (!user) {
     const stats = [
-      { label: '등록된 머미', value: totalGames ?? 0, suffix: '개' },
-      { label: '등록된 리뷰 수', value: totalReviews ?? 0, suffix: '개' },
+      { label: '등록된 머미', value: totalGames, suffix: '개' },
+      { label: '등록된 리뷰 수', value: totalReviews, suffix: '개' },
     ]
     return (
       <div className="space-y-8">
-        {/* 히어로 */}
         <div className="flex flex-col items-center text-center space-y-6 pt-6">
           <div className="space-y-3">
             <h1
@@ -73,7 +68,6 @@ export default async function HomePage() {
             </p>
           </div>
 
-          {/* 통계 */}
           <div className="w-full max-w-xs grid grid-cols-2 gap-3">
             {stats.map(({ label, value, suffix }) => (
               <div key={label} className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-3 text-center">
@@ -93,9 +87,7 @@ export default async function HomePage() {
           </Link>
         </div>
 
-        {/* 게임 미리보기 6개 */}
-        <HomeGamePreview games={allGames} wishlistedIds={[]} isLoggedIn={false} />
-
+        <HomeGamePreview games={previewGames} wishlistedIds={[]} isLoggedIn={false} />
       </div>
     )
   }
@@ -121,7 +113,11 @@ export default async function HomePage() {
           </div>
         </div>
 
-        <HomeGamePreview games={allGames.filter(g => !playedIds.includes(g.id) || wishlistedIds.includes(g.id))} wishlistedIds={wishlistedIds} isLoggedIn={!!user} />
+        <HomeGamePreview
+          games={previewGames.filter(g => !playedIds.includes(g.id) || wishlistedIds.includes(g.id))}
+          wishlistedIds={wishlistedIds}
+          isLoggedIn
+        />
       </div>
     )
   }
@@ -139,7 +135,6 @@ export default async function HomePage() {
         <p className="text-muted-foreground text-sm">총 {playedGames.length}개의 머미를 졸업했어요</p>
       </div>
 
-      {/* 통계 */}
       <div className="grid grid-cols-2 gap-3">
         {[
           { label: '플레이한 게임', value: playedGames.length },
@@ -152,7 +147,6 @@ export default async function HomePage() {
         ))}
       </div>
 
-      {/* 바로가기 */}
       <div className="grid grid-cols-3 gap-3">
         <Link
           href="/my-records"
@@ -177,7 +171,11 @@ export default async function HomePage() {
         </Link>
       </div>
 
-      <HomeGamePreview games={allGames.filter(g => !playedIds.includes(g.id) || wishlistedIds.includes(g.id))} wishlistedIds={wishlistedIds} isLoggedIn={!!user} />
+      <HomeGamePreview
+        games={previewGames.filter(g => !playedIds.includes(g.id) || wishlistedIds.includes(g.id))}
+        wishlistedIds={wishlistedIds}
+        isLoggedIn
+      />
     </div>
   )
 }
