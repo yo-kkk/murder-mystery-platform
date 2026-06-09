@@ -433,7 +433,7 @@ export function AddPlayRecordModal({ game, onClose, existingRecord, existingRevi
                 </button>
                 <button
                   type="button"
-                  onClick={() => setHasSecretTalk(p => !p)}
+                  onClick={() => setHasSecretTalk((p: boolean) => !p)}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
                     hasSecretTalk
                       ? 'bg-purple-500/15 border-purple-500/60 text-purple-400'
