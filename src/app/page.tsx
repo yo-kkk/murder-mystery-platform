@@ -150,24 +150,24 @@ export default async function HomePage() {
       <div className="grid grid-cols-3 gap-3">
         <Link
           href="/my-records"
-          className="flex flex-col items-center gap-2 py-5 rounded-xl border border-white/10 bg-white/[0.06] hover:bg-white/[0.10] hover:border-white/20 transition-colors text-center"
+          className="flex flex-col items-center gap-2 py-5 rounded-xl border border-[var(--border)] bg-[var(--card)] hover:bg-[var(--secondary)] hover:border-primary/30 transition-colors text-center"
         >
-          <BookOpen size={22} className="text-white/70" />
-          <span className="text-sm font-medium text-white/80">내 기록 보기</span>
+          <BookOpen size={22} className="text-muted-foreground" />
+          <span className="text-sm font-medium text-foreground">내 기록 보기</span>
         </Link>
         <Link
           href="/games"
-          className="flex flex-col items-center gap-2 py-5 rounded-xl border border-white/10 bg-white/[0.06] hover:bg-white/[0.10] hover:border-white/20 transition-colors text-center"
+          className="flex flex-col items-center gap-2 py-5 rounded-xl border border-[var(--border)] bg-[var(--card)] hover:bg-[var(--secondary)] hover:border-primary/30 transition-colors text-center"
         >
-          <Search size={22} className="text-white/70" />
-          <span className="text-sm font-medium text-white/80">머미 찾아보기</span>
+          <Search size={22} className="text-muted-foreground" />
+          <span className="text-sm font-medium text-foreground">머미 찾아보기</span>
         </Link>
         <Link
           href="/games?wishlist=true"
-          className="flex flex-col items-center gap-2 py-5 rounded-xl border border-white/10 bg-white/[0.06] hover:bg-white/[0.10] hover:border-white/20 transition-colors text-center"
+          className="flex flex-col items-center gap-2 py-5 rounded-xl border border-[var(--border)] bg-[var(--card)] hover:bg-[var(--secondary)] hover:border-primary/30 transition-colors text-center"
         >
           <div className="h-[22px] flex items-center text-xl font-bold text-yellow-400">{wishlistCount}</div>
-          <span className="text-sm font-medium text-white/80">찜 목록</span>
+          <span className="text-sm font-medium text-foreground">찜 목록</span>
         </Link>
       </div>
 
