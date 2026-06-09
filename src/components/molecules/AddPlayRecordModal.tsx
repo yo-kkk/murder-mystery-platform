@@ -26,6 +26,7 @@ interface ExistingReview {
   tags: string[]
   is_public: boolean
   is_best: boolean
+  nickname?: string
 }
 
 const REVIEW_TAGS = [
