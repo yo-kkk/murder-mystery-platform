@@ -8,7 +8,8 @@ interface Submission {
   id: string
   title: string
   subtitle: string | null
-  description: string
+  description: string | null
+  image_urls: string[]
   min_players: number
   max_players: number
   duration_minutes: number
@@ -98,7 +99,14 @@ function SubmissionCard({ submission: s }: { submission: Submission }) {
       {expanded && (
         <div className="px-4 pb-4 space-y-4 border-t border-[var(--border)] pt-4">
           {s.subtitle && <p className="text-sm text-muted-foreground">{s.subtitle}</p>}
-          <p className="text-sm text-foreground leading-relaxed">{s.description}</p>
+          {s.image_urls?.length > 0 && (
+            <div className="flex gap-2">
+              {s.image_urls.map((url, i) => (
+                <img key={i} src={url} alt="" className="w-20 h-20 rounded-lg object-cover border border-[var(--border)]" />
+              ))}
+            </div>
+          )}
+          {s.description && <p className="text-sm text-foreground leading-relaxed">{s.description}</p>}
 
           <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
             {s.publisher && <div><span className="text-foreground/50">제작사</span> {s.publisher}</div>}

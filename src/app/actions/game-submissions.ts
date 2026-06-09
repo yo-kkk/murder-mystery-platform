@@ -14,6 +14,7 @@ export async function submitGame(formData: {
   requiresGm: boolean
   publisher?: string
   releaseYear?: number
+  imageUrls?: string[]
 }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -31,6 +32,7 @@ export async function submitGame(formData: {
     requires_gm: formData.requiresGm,
     publisher: formData.publisher || null,
     release_year: formData.releaseYear || null,
+    image_urls: formData.imageUrls ?? [],
   })
 
   if (error) return { error: '제출 중 오류가 발생했어요' }
