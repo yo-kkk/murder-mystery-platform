@@ -1,21 +1,55 @@
-import { BookOpen, Calendar, Users } from 'lucide-react'
-import { StarRating } from '@/components/atoms/StarRating'
-import { formatDate, VENUE_TYPE_LABEL } from '@/lib/utils'
-import type { Game, PlayRecord, Venue } from '@/types'
-import gamesData from '../../../mocks/data/games.json'
-import recordsData from '../../../mocks/data/play-records.json'
-import venuesData from '../../../mocks/data/venues.json'
+import Link from 'next/link'
+import { BookOpen, Search } from 'lucide-react'
+import { createClient } from '@/lib/supabase/server'
+import { RecordsSearch } from '@/components/molecules/RecordsSearch'
+import { LoginRequiredOverlay } from '@/components/molecules/LoginRequiredOverlay'
 
-const games = gamesData as Game[]
-const records = recordsData as PlayRecord[]
-const venues = venuesData as Venue[]
+export const dynamic = 'force-dynamic'
 
-export default function MyRecordsPage() {
-  const enriched = records.map(r => ({
-    ...r,
-    game: games.find(g => g.id === r.gameId)!,
-    venue: venues.find(v => v.id === r.venueId),
-  })).filter(r => r.game)
+export default async function MyRecordsPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) return <LoginRequiredOverlay />
+
+  // 기록 + 게임 + 리뷰 조회
+  const { data: records } = await supabase
+    .from('play_records')
+    .select(`
+      id,
+      played_at,
+      venue_name,
+      companions,
+      memo,
+      image_urls,
+      is_best,
+      game:games (
+        id,
+        short_id,
+        title,
+        avg_rating,
+        min_players,
+        max_players,
+        duration_minutes,
+        max_duration_minutes,
+        requires_gm
+      )
+    `)
+    .eq('user_id', user.id)
+    .order('played_at', { ascending: false })
+
+  const gameIds = (records ?? []).map((r: any) => r.game?.id).filter(Boolean)
+  const [{ data: reviews }, { count: wishlistCount }] = await Promise.all([
+    gameIds.length
+      ? supabase.from('reviews').select('id, game_id, rating, comment, tags, is_public, is_best').eq('user_id', user.id).in('game_id', gameIds)
+      : Promise.resolve({ data: [] }),
+    supabase.from('wishlists').select('id', { count: 'exact', head: true }).eq('user_id', user.id),
+  ])
+
+  const reviewMap = new Map((reviews ?? []).map((r: any) => [r.game_id, r]))
+  const enriched = (records ?? []).filter((r: any) => r.game)
+
+  const uniqueCompanions = [...new Set(enriched.flatMap((r: any) => r.companions ?? []))]
 
   return (
     <div className="space-y-6">
@@ -31,64 +65,41 @@ export default function MyRecordsPage() {
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3">
         {[
-          { label: '플레이 횟수', value: enriched.length },
-          { label: '리뷰 작성', value: enriched.filter(r => r.myReviewId).length },
-          { label: '함께한 사람', value: [...new Set(enriched.flatMap(r => r.companions))].length },
+          { label: '플레이한 게임', value: enriched.length },
+          { label: '나의 리뷰', value: reviewMap.size },
         ].map(({ label, value }) => (
           <div key={label} className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-3 text-center">
             <div className="text-xl font-bold text-primary">{value}</div>
             <div className="text-xs text-muted-foreground mt-0.5">{label}</div>
           </div>
         ))}
+        <Link
+          href="/games?wishlist=true"
+          className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-3 text-center flex flex-col items-center justify-center gap-1 hover:border-primary/50 transition-colors"
+        >
+          <div className="text-xl font-bold text-yellow-400">{wishlistCount ?? 0}</div>
+          <div className="text-xs text-muted-foreground">찜 목록</div>
+        </Link>
       </div>
 
-      {/* Records list */}
-      <div className="space-y-3">
-        {enriched.map(record => (
-          <div key={record.id} className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-4 space-y-3">
-            {/* Game title */}
-            <div className="flex items-start justify-between">
-              <div>
-                <h3 className="font-semibold text-foreground">{record.game.title}</h3>
-                <StarRating rating={record.game.avgRating} size="sm" className="mt-1" />
-              </div>
-              {!record.myReviewId && (
-                <button className="text-xs px-2 py-1 rounded border border-primary/50 text-primary hover:bg-primary/10 transition-colors">
-                  리뷰 쓰기
-                </button>
-              )}
-            </div>
-
-            {/* Meta */}
-            <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1">
-                <Calendar size={11} />
-                {formatDate(record.playedAt)}
-              </span>
-              {record.venue && (
-                <span className="flex items-center gap-1">
-                  📍 {record.venue.name} ({VENUE_TYPE_LABEL[record.venue.type]})
-                </span>
-              )}
-              {record.companions.length > 0 && (
-                <span className="flex items-center gap-1">
-                  <Users size={11} />
-                  {record.companions.join(', ')}와 함께
-                </span>
-              )}
-            </div>
-
-            {!record.isPublic && (
-              <span className="text-xs text-muted-foreground/60">🔒 비공개</span>
-            )}
-          </div>
-        ))}
-      </div>
-
-      {/* Add button */}
-      <button className="w-full py-3 rounded-lg border border-dashed border-[var(--border)] text-muted-foreground text-sm hover:border-primary/50 hover:text-foreground transition-colors">
-        + 새 플레이 기록 추가
-      </button>
+      {/* Empty state */}
+      {enriched.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-[var(--border)] p-10 text-center space-y-3">
+          <p className="text-muted-foreground text-sm">기록된 사건이 없어요</p>
+          <Link
+            href="/games"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90 transition-colors"
+          >
+            <Search size={14} />
+            머더 미스터리 찾아보기
+          </Link>
+        </div>
+      ) : (
+        <RecordsSearch
+          records={enriched}
+          reviewMap={Object.fromEntries(reviewMap)}
+        />
+      )}
     </div>
   )
 }

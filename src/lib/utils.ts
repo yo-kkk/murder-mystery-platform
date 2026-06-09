@@ -46,11 +46,43 @@ export function formatDuration(minutes: number): string {
 }
 
 export function formatDurationRange(min: number, max?: number): string {
-  if (!max || max === min) return formatDuration(min)
-  return `${formatDuration(min)}~${formatDuration(max)}`
+  if (!max || max === min) return `약 ${formatDuration(min)}`
+
+  const minMins = min % 60
+  const maxMins = max % 60
+
+  // 둘 다 정각 시간이면 "2~8시간"
+  if (min >= 60 && max >= 60 && minMins === 0 && maxMins === 0) {
+    return `약 ${min / 60}~${max / 60}시간`
+  }
+
+  // 둘 다 60분 미만이면 "60~90분"
+  if (min < 60 && max < 60) {
+    return `약 ${min}~${max}분`
+  }
+
+  return `약 ${formatDuration(min)}~${formatDuration(max)}`
 }
 
 export function formatDate(dateStr: string): string {
-  const date = new Date(dateStr)
-  return date.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })
+  const [year, month, day] = dateStr.split('T')[0].split('-').map(Number)
+  return `${year}년 ${month}월 ${day}일`
+}
+
+export type GameSortKey = 'rating' | 'reviews' | 'newest' | 'title' | 'wishlist'
+
+export function sortGames<T extends { bayesianRating?: number; avgRating?: number; reviewCount?: number; releaseYear?: number; wishlistCount?: number; title: string }>(
+  games: T[],
+  sort: GameSortKey
+): T[] {
+  return [...games].sort((a, b) => {
+    switch (sort) {
+      case 'rating':   return (b.bayesianRating ?? b.avgRating ?? 0) - (a.bayesianRating ?? a.avgRating ?? 0)
+      case 'reviews':  return (b.reviewCount ?? 0) - (a.reviewCount ?? 0)
+      case 'newest':   return (b.releaseYear ?? 0) - (a.releaseYear ?? 0)
+      case 'wishlist': return (b.wishlistCount ?? 0) - (a.wishlistCount ?? 0)
+      case 'title':    return a.title.localeCompare(b.title, 'ko')
+      default:         return 0
+    }
+  })
 }

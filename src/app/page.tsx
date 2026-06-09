@@ -1,67 +1,137 @@
-import { Search, SlidersHorizontal } from 'lucide-react'
-import { GameCard } from '@/components/molecules/GameCard'
-import { Badge } from '@/components/ui/badge'
+import Link from 'next/link'
+import { BookOpen, Search } from 'lucide-react'
+import { HomeGamePreview } from '@/components/molecules/HomeGamePreview'
+import { createClient } from '@/lib/supabase/server'
 import { getGames } from '@/lib/supabase/queries'
+import { supabase as publicClient } from '@/lib/supabase/client'
 
 export const revalidate = 60
 
 export default async function HomePage() {
-  const games = await getGames()
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
+  const allGames = await getGames()
+
+  const [{ count: totalGames }, { count: totalReviews }] = await Promise.all([
+    publicClient.from('games').select('*', { count: 'exact', head: true }),
+    publicClient.from('reviews').select('*', { count: 'exact', head: true }).eq('is_public', true),
+  ])
+
+  let playedIds: string[] = []
+  let wishlistedIds: string[] = []
+  let wishlistCount = 0
+  if (user) {
+    const [recordsRes, wishlistRes] = await Promise.all([
+      supabase.from('play_records').select('game_id').eq('user_id', user.id),
+      supabase.from('wishlists').select('game_id').eq('user_id', user.id),
+    ])
+    playedIds = (recordsRes.data ?? []).map((r: { game_id: string }) => r.game_id)
+    wishlistedIds = (wishlistRes.data ?? []).map((r: { game_id: string }) => r.game_id)
+    wishlistCount = wishlistedIds.length
+  }
+
+  const playedGames = allGames.filter(g => playedIds.includes(g.id))
+  const totalMinutes = playedGames.reduce((sum, g) => {
+    const mid = g.maxDurationMinutes
+      ? Math.round((g.durationMinutes + g.maxDurationMinutes) / 2)
+      : g.durationMinutes
+    return sum + mid
+  }, 0)
+
+  // 비로그인 상태
+  if (!user) {
+    const stats = [
+      { label: '등록된 머미', value: totalGames ?? 0, suffix: '개' },
+      { label: '등록된 리뷰 수', value: totalReviews ?? 0, suffix: '개' },
+    ]
+    return (
+      <div className="space-y-8">
+        {/* 히어로 */}
+        <div className="flex flex-col items-center text-center space-y-6 pt-6">
+          <div className="space-y-3">
+            <h1
+              className="text-3xl font-bold"
+              style={{ color: 'var(--gold)', fontFamily: 'var(--font-serif)' }}
+            >
+              어제의 <span className="text-primary">머미</span>
+            </h1>
+            <p className="text-muted-foreground text-sm leading-relaxed">
+              플레이한 게임을 기록하고,<br />새로운 사건을 찾아보세요
+            </p>
+          </div>
+
+          {/* 통계 */}
+          <div className="w-full max-w-xs grid grid-cols-2 gap-3">
+            {stats.map(({ label, value, suffix }) => (
+              <div key={label} className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-3 text-center">
+                <div className="text-lg font-bold text-primary">
+                  {value.toLocaleString()}{suffix}
+                </div>
+                <div className="text-[10px] text-muted-foreground mt-0.5 leading-tight">{label}</div>
+              </div>
+            ))}
+          </div>
+
+          <Link
+            href="/login"
+            className="w-full max-w-xs block py-3.5 rounded-xl font-semibold text-sm text-center bg-[var(--gold)] text-black hover:opacity-90 transition-opacity"
+          >
+            로그인 후 시작하기
+          </Link>
+        </div>
+
+        {/* 게임 미리보기 6개 */}
+        <HomeGamePreview games={allGames} wishlistedIds={[]} isLoggedIn={false} />
+
+      </div>
+    )
+  }
+
+  // 로그인 + 플레이 기록 없음
+  if (playedGames.length === 0) {
+    return (
+      <div className="space-y-8">
+        <div className="rounded-xl border border-dashed border-[var(--border)] p-8 text-center space-y-4">
+          <BookOpen size={40} className="mx-auto text-muted-foreground/40" />
+          <div className="space-y-1">
+            <p className="font-medium text-foreground">첫 번째 사건을 기록해보세요</p>
+            <p className="text-sm text-muted-foreground">플레이한 게임을 찾아 기록하고 평가할 수 있어요</p>
+          </div>
+          <div className="flex justify-center pt-2">
+            <Link
+              href="/games"
+              className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90 transition-colors"
+            >
+              <Search size={15} />
+              머더 미스터리 찾아보기
+            </Link>
+          </div>
+        </div>
+
+        <HomeGamePreview games={allGames.filter(g => !playedIds.includes(g.id) || wishlistedIds.includes(g.id))} wishlistedIds={wishlistedIds} isLoggedIn={!!user} />
+      </div>
+    )
+  }
+
+  // 로그인 + 플레이 기록 있음
   return (
     <div className="space-y-6">
-      {/* Hero */}
-      <div className="text-center py-8 space-y-3">
+      <div className="py-4 space-y-1">
         <h1
-          className="text-3xl font-bold tracking-widest uppercase"
-          style={{ color: 'var(--gold)', fontFamily: 'Georgia, serif' }}
+          className="text-2xl font-bold"
+          style={{ color: 'var(--gold)', fontFamily: 'var(--font-serif)' }}
         >
-          Murder Mystery
+          내 사건 파일
         </h1>
-        <p className="text-muted-foreground text-sm">
-          플레이한 게임을 기록하고, 평가하고, 새로운 사건을 찾아보세요
-        </p>
+        <p className="text-muted-foreground text-sm">총 {playedGames.length}개의 머미를 졸업했어요</p>
       </div>
 
-      {/* Search */}
-      <div className="flex gap-2">
-        <div className="relative flex-1">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <input
-            type="text"
-            placeholder="게임 검색..."
-            className="w-full pl-9 pr-4 py-2.5 rounded-lg bg-[var(--card)] border border-[var(--border)] text-foreground placeholder:text-muted-foreground text-sm focus:outline-none focus:border-primary/60 transition-colors"
-          />
-        </div>
-        <button className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-[var(--card)] border border-[var(--border)] text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors text-sm">
-          <SlidersHorizontal size={15} />
-          필터
-        </button>
-      </div>
-
-      {/* Filter badges */}
-      <div className="flex flex-wrap gap-2">
-        {['전체', '공포', '빅토리안', '역사', '판타지', 'SF', '현대'].map(tag => (
-          <Badge
-            key={tag}
-            variant={tag === '전체' ? 'default' : 'outline'}
-            className={
-              tag === '전체'
-                ? 'bg-primary text-white cursor-pointer'
-                : 'border-[var(--border)] text-muted-foreground cursor-pointer hover:border-primary/50 hover:text-foreground transition-colors'
-            }
-          >
-            {tag}
-          </Badge>
-        ))}
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-3">
+      {/* 통계 */}
+      <div className="grid grid-cols-2 gap-3">
         {[
-          { label: '전체 게임', value: games.length },
-          { label: '내가 플레이', value: '-' },
-          { label: '이번 달 추가', value: '-' },
+          { label: '플레이한 게임', value: playedGames.length },
+          { label: '총 플레이 시간', value: totalMinutes > 0 ? `약 ${Math.round(totalMinutes / 60)}시간` : '-' },
         ].map(({ label, value }) => (
           <div key={label} className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-3 text-center">
             <div className="text-xl font-bold text-primary">{value}</div>
@@ -70,17 +140,32 @@ export default async function HomePage() {
         ))}
       </div>
 
-      {/* Game grid */}
-      <section>
-        <h2 className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wider">
-          모든 게임 <span className="text-primary">{games.length}</span>
-        </h2>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {games.map(game => (
-            <GameCard key={game.id} game={game} />
-          ))}
-        </div>
-      </section>
+      {/* 바로가기 */}
+      <div className="grid grid-cols-3 gap-3">
+        <Link
+          href="/my-records"
+          className="flex flex-col items-center gap-2 py-5 rounded-xl border border-white/10 bg-white/[0.06] hover:bg-white/[0.10] hover:border-white/20 transition-colors text-center"
+        >
+          <BookOpen size={22} className="text-white/70" />
+          <span className="text-sm font-medium text-white/80">내 기록 보기</span>
+        </Link>
+        <Link
+          href="/games"
+          className="flex flex-col items-center gap-2 py-5 rounded-xl border border-white/10 bg-white/[0.06] hover:bg-white/[0.10] hover:border-white/20 transition-colors text-center"
+        >
+          <Search size={22} className="text-white/70" />
+          <span className="text-sm font-medium text-white/80">머미 찾아보기</span>
+        </Link>
+        <Link
+          href="/games?wishlist=true"
+          className="flex flex-col items-center gap-2 py-5 rounded-xl border border-white/10 bg-white/[0.06] hover:bg-white/[0.10] hover:border-white/20 transition-colors text-center"
+        >
+          <div className="h-[22px] flex items-center text-xl font-bold text-yellow-400">{wishlistCount}</div>
+          <span className="text-sm font-medium text-white/80">찜 목록</span>
+        </Link>
+      </div>
+
+      <HomeGamePreview games={allGames.filter(g => !playedIds.includes(g.id) || wishlistedIds.includes(g.id))} wishlistedIds={wishlistedIds} isLoggedIn={!!user} />
     </div>
   )
 }

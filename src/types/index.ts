@@ -1,14 +1,13 @@
-export type Difficulty = 'beginner' | 'intermediate' | 'advanced' | 'expert'
 export type Theme = 'victorian' | 'modern' | 'fantasy' | 'horror' | 'comedy' | 'historical' | 'scifi'
 export type VenueType = 'party_room' | 'board_game_cafe' | 'escape_room' | 'home' | 'online'
 
 export interface Game {
   id: string
+  shortId: string
   title: string
   subtitle?: string
   description: string
   themes: Theme[]
-  difficulty: Difficulty
   minPlayers: number
   maxPlayers: number
   recMinPlayers?: number
@@ -16,9 +15,10 @@ export interface Game {
   durationMinutes: number
   maxDurationMinutes?: number
   requiresGm: boolean
-  imageUrl?: string | null
   avgRating: number
+  bayesianRating: number
   reviewCount: number
+  wishlistCount: number
   publisher?: string
   releaseYear?: number
 }
@@ -51,7 +51,6 @@ export interface Review {
   userId: string
   userName: string
   rating: number
-  difficultyRating: number
   atmosphereRating: number
   comment: string
   isSpoiler: boolean

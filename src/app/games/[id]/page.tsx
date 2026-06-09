@@ -1,27 +1,105 @@
 import { notFound } from 'next/navigation'
-import { ArrowLeft, Users, Clock, MapPin, BookmarkPlus, Building2 } from 'lucide-react'
+import { ArrowLeft, Users, Clock, MapPin, Building2 } from 'lucide-react'
+import { ReviewsSection } from '@/components/molecules/ReviewsSection'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { StarRating } from '@/components/atoms/StarRating'
-import { DIFFICULTY_LABEL, DIFFICULTY_COLOR, THEME_LABEL, VENUE_TYPE_LABEL, formatDuration } from '@/lib/utils'
-import { getGame, getGames, getVenuesByGame } from '@/lib/supabase/queries'
+import { THEME_LABEL, VENUE_TYPE_LABEL, formatDurationRange } from '@/lib/utils'
+import { getGameByShortId, getGames, getVenuesByGame } from '@/lib/supabase/queries'
+import { createClient } from '@/lib/supabase/server'
+import { RecordButton } from '@/components/molecules/RecordButton'
+import { WishlistButton } from '@/components/molecules/WishlistButton'
 
-export const revalidate = 60
+export const dynamic = 'force-dynamic'
 
 export async function generateStaticParams() {
   const games = await getGames()
-  return games.map(g => ({ id: g.id }))
+  return games.map(g => ({ id: g.shortId }))
 }
 
 export default async function GameDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const [game, venues] = await Promise.all([getGame(id), getVenuesByGame(id)])
+
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  const [game, venues] = await Promise.all([
+    getGameByShortId(id),
+    getVenuesByGame(id),
+  ])
 
   if (!game) notFound()
 
+  let existingRecord = null
+  let existingReview = null
+  let isWishlisted = false
+
+  const { data: publicReviews } = await supabase
+    .from('reviews')
+    .select('id, rating, comment, tags, is_best, created_at, user_id')
+    .eq('game_id', game.id)
+    .eq('is_public', true)
+    .order('created_at', { ascending: false })
+
+  const rawReviews = publicReviews ?? []
+
+  let reviews: { id: string; rating: number; comment: string | null; tags: string[]; is_best: boolean; created_at: string; nickname: string }[] = []
+
+  if (rawReviews.length > 0) {
+    const userIds = [...new Set(rawReviews.map(r => r.user_id))]
+    const { data: profilesData } = await supabase
+      .from('profiles')
+      .select('id, nickname, is_nickname_public')
+      .in('id', userIds)
+
+    const profileMap = Object.fromEntries((profilesData ?? []).map(p => [p.id, p]))
+
+    reviews = rawReviews.map(r => {
+      const p = profileMap[r.user_id]
+      const nickname = p?.is_nickname_public && p?.nickname ? p.nickname : '(비공개 유저)'
+      return { ...r, nickname }
+    })
+  }
+
+  if (user) {
+    const [{ data: record }, { data: review }, { data: wishlist }] = await Promise.all([
+      supabase
+        .from('play_records')
+        .select('id, played_at, venue_name, companions, memo, image_urls, is_best')
+        .eq('user_id', user.id)
+        .eq('game_id', game.id)
+        .maybeSingle(),
+      supabase
+        .from('reviews')
+        .select('id, rating, comment, tags, is_public, is_best, created_at')
+        .eq('user_id', user.id)
+        .eq('game_id', game.id)
+        .maybeSingle(),
+      supabase
+        .from('wishlists')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('game_id', game.id)
+        .maybeSingle(),
+    ])
+    existingRecord = record
+    isWishlisted = !!wishlist
+
+    if (review) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('nickname, is_nickname_public')
+        .eq('id', user.id)
+        .single()
+      const nickname = profile?.is_nickname_public && profile?.nickname ? profile.nickname : '(비공개 유저)'
+      existingReview = { ...review, nickname }
+    }
+  }
+
+
   return (
-    <div className="space-y-6 max-w-2xl">
-      <Link href="/" className="flex items-center gap-2 text-muted-foreground hover:text-foreground text-sm transition-colors w-fit">
+    <div className="space-y-6">
+      <Link href="/games" className="flex items-center gap-2 text-muted-foreground hover:text-foreground text-sm transition-colors w-fit">
         <ArrowLeft size={15} /> 목록으로
       </Link>
 
@@ -29,7 +107,7 @@ export default async function GameDetailPage({ params }: { params: Promise<{ id:
       <div className="relative rounded-xl overflow-hidden border border-[var(--border)]">
         <div className="h-48 bg-gradient-to-br from-[var(--card)] via-primary/10 to-black flex items-end p-5">
           <div className="space-y-1">
-            <h1 className="text-2xl font-bold text-foreground" style={{ fontFamily: 'Georgia, serif' }}>
+            <h1 className="text-2xl font-bold text-foreground" style={{ fontFamily: 'var(--font-serif)' }}>
               {game.title}
             </h1>
             {game.subtitle && <p className="text-sm text-muted-foreground">{game.subtitle}</p>}
@@ -40,36 +118,58 @@ export default async function GameDetailPage({ params }: { params: Promise<{ id:
       {/* Meta */}
       <div className="grid grid-cols-2 gap-3">
         <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-3 space-y-1">
-          <StarRating rating={game.avgRating} size="md" />
-          <p className="text-xs text-muted-foreground">{game.reviewCount}개의 리뷰</p>
+          {game.reviewCount >= 3 ? (
+            <>
+              <StarRating rating={game.bayesianRating} size="md" />
+              <p className="text-xs text-muted-foreground">{game.reviewCount}개의 리뷰</p>
+            </>
+          ) : game.reviewCount > 0 ? (
+            <>
+              <p className="text-sm text-muted-foreground">평가 집계 중</p>
+              <p className="text-xs text-muted-foreground">{game.reviewCount}개의 리뷰</p>
+            </>
+          ) : (
+            <p className="text-sm text-muted-foreground">평가 없음</p>
+          )}
         </div>
         <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-3 space-y-2">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Users size={14} /> {game.minPlayers}~{game.maxPlayers}인
+            <Users size={14} />
+            {game.minPlayers === game.maxPlayers
+              ? `${game.minPlayers}인`
+              : `${game.minPlayers}~${game.maxPlayers}인`}
+            {game.requiresGm && (
+              <span className="text-xs px-1.5 py-0.5 rounded border border-yellow-500/50 text-yellow-500 leading-none">GM필수</span>
+            )}
           </div>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Clock size={14} /> {formatDuration(game.durationMinutes)}
+            <Clock size={14} />
+            {formatDurationRange(game.durationMinutes, game.maxDurationMinutes)}
           </div>
         </div>
       </div>
 
       {/* Tags */}
       <div className="flex flex-wrap gap-2">
-        <Badge className={`${DIFFICULTY_COLOR[game.difficulty]} bg-transparent border border-current`}>
-          {DIFFICULTY_LABEL[game.difficulty]}
-        </Badge>
         {game.themes.map(theme => (
           <Badge key={theme} variant="outline" className="border-[var(--border)] text-muted-foreground">
             {THEME_LABEL[theme]}
           </Badge>
         ))}
+        {game.requiresGm && (
+          <Badge variant="outline" className="border-yellow-500/50 text-yellow-500">
+            GM 필수
+          </Badge>
+        )}
       </div>
 
       {/* Description */}
-      <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-4">
-        <h2 className="text-sm font-semibold text-[var(--gold)] mb-2 uppercase tracking-wider">시놉시스</h2>
-        <p className="text-sm text-muted-foreground leading-relaxed italic">&ldquo;{game.description}&rdquo;</p>
-      </div>
+      {game.description && (
+        <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-4">
+          <h2 className="text-sm font-semibold text-[var(--gold)] mb-2 uppercase tracking-wider">시놉시스</h2>
+          <p className="text-sm text-muted-foreground leading-relaxed">{game.description}</p>
+        </div>
+      )}
 
       {/* Publisher info */}
       {(game.publisher || game.releaseYear) && (
@@ -95,12 +195,14 @@ export default async function GameDetailPage({ params }: { params: Promise<{ id:
 
       {/* Actions */}
       <div className="flex gap-3">
-        <button className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90 transition-colors">
-          <BookmarkPlus size={16} /> 플레이 기록 추가
-        </button>
-        <button className="px-4 py-2.5 rounded-lg border border-[var(--border)] text-muted-foreground text-sm hover:border-primary/50 hover:text-foreground transition-colors">
-          ♥ 찜
-        </button>
+        <RecordButton game={game} isLoggedIn={!!user} existingRecord={existingRecord} existingReview={existingReview} />
+        <WishlistButton
+          gameId={game.id}
+          initialWishlisted={isWishlisted}
+          initialCount={game.wishlistCount}
+          isLoggedIn={!!user}
+          alwaysVisible
+        />
       </div>
 
       {/* Venues */}
@@ -119,15 +221,23 @@ export default async function GameDetailPage({ params }: { params: Promise<{ id:
                   </p>
                 </div>
                 {venue.reservationUrl && (
-                  <button className="text-xs px-3 py-1.5 rounded border border-primary/50 text-primary hover:bg-primary/10 transition-colors">
+                  <a
+                    href={venue.reservationUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs px-3 py-1.5 rounded border border-primary/50 text-primary hover:bg-primary/10 transition-colors"
+                  >
                     예약
-                  </button>
+                  </a>
                 )}
               </div>
             ))}
           </div>
         </section>
       )}
+
+      {/* Reviews */}
+      <ReviewsSection reviews={reviews} myReview={existingReview ?? null} isLoggedIn={!!user} />
     </div>
   )
 }

@@ -2,10 +2,16 @@ import { MapPin, Phone, Star } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { VENUE_TYPE_LABEL } from '@/lib/utils'
 import { getVenues } from '@/lib/supabase/queries'
+import { createClient } from '@/lib/supabase/server'
+import { LoginRequiredOverlay } from '@/components/molecules/LoginRequiredOverlay'
 
-export const revalidate = 60
+export const dynamic = 'force-dynamic'
 
 export default async function VenuesPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return <LoginRequiredOverlay />
+
   const venues = await getVenues()
 
   return (
@@ -15,7 +21,7 @@ export default async function VenuesPage() {
           <MapPin size={20} className="text-primary" />
           플레이 장소
         </h1>
-        <p className="text-sm text-muted-foreground">머더미스터리를 플레이할 수 있는 곳을 찾아보세요</p>
+        <p className="text-sm text-muted-foreground">머더 미스터리를 플레이할 수 있는 곳을 찾아보세요</p>
       </div>
 
       {/* Filter */}
