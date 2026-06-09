@@ -4,8 +4,6 @@ import { useState, useTransition, useRef, useEffect } from 'react'
 import { X, CalendarIcon, MapPin, Users, FileText, Plus, ImagePlus } from 'lucide-react'
 import { addPlayRecord, updatePlayRecord, deletePlayRecord } from '@/app/actions/play-records'
 import { StarPicker } from '@/components/atoms/StarPicker'
-import { Calendar } from '@/components/ui/calendar'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { createClient } from '@/lib/supabase/browser'
 import type { Game } from '@/types'
 
@@ -53,10 +51,9 @@ export function AddPlayRecordModal({ game, onClose, existingRecord, existingRevi
   // 기록
   const [isBest, setIsBest] = useState(existingRecord?.is_best ?? false)
   const [isReviewBest, setIsReviewBest] = useState(existingReview?.is_best ?? false)
-  const [selectedDate, setSelectedDate] = useState<Date>(
-    existingRecord ? new Date(existingRecord.played_at) : new Date()
+  const [playedAt, setPlayedAt] = useState(
+    existingRecord ? existingRecord.played_at : new Date().toISOString().split('T')[0]
   )
-  const playedAt = selectedDate.toISOString().split('T')[0]
   const [venue, setVenue] = useState(existingRecord?.venue_name ?? '')
   const [companionInput, setCompanionInput] = useState('')
   const [companions, setCompanions] = useState<string[]>(existingRecord?.companions ?? [])
@@ -259,22 +256,13 @@ export function AddPlayRecordModal({ game, onClose, existingRecord, existingRevi
               <label className="text-xs font-medium text-muted-foreground mb-1.5 flex items-center gap-1.5">
                 <CalendarIcon size={11} /> 플레이 날짜
               </label>
-              <Popover>
-                <PopoverTrigger className="w-full">
-                  <div className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg bg-[var(--background)] border border-[var(--border)] text-foreground text-sm hover:border-primary/60 transition-colors text-left cursor-pointer">
-                    <CalendarIcon size={14} className="text-muted-foreground shrink-0" />
-                    {selectedDate.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}
-                  </div>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 bg-[var(--card)] border-[var(--border)]" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={d => d && setSelectedDate(d)}
-                    disabled={{ after: new Date() }}
-                  />
-                </PopoverContent>
-              </Popover>
+              <input
+                type="date"
+                value={playedAt}
+                max={new Date().toISOString().split('T')[0]}
+                onChange={e => setPlayedAt(e.target.value)}
+                className="w-full px-3 py-2.5 rounded-lg bg-[var(--background)] border border-[var(--border)] text-foreground text-sm focus:outline-none focus:border-primary/60 transition-colors"
+              />
             </div>
 
             {/* 장소 */}
