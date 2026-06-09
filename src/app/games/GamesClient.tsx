@@ -9,6 +9,7 @@ import { WishlistButton } from '@/components/molecules/WishlistButton'
 import { AddPlayRecordModal } from '@/components/molecules/AddPlayRecordModal'
 import { Pagination } from '@/components/atoms/Pagination'
 import { useClickOutside } from '@/hooks/useClickOutside'
+import { SubmitGameModal } from '@/components/molecules/SubmitGameModal'
 import type { Game } from '@/types'
 
 const PAGE_SIZE_OPTIONS = [10, 20]
@@ -48,6 +49,7 @@ export function GamesClient({ games, playedIds, wishlistedIds, isLoggedIn }: Pro
   const [playerFilter, setPlayerFilter] = useState<number | null>(null)
   const [wishlistFilter, setWishlistFilter] = useState(() => searchParams.get('wishlist') === 'true')
   const [selectedGame, setSelectedGame] = useState<Game | null>(null)
+  const [showSubmitModal, setShowSubmitModal] = useState(false)
   const sortRef = useRef<HTMLDivElement>(null)
   const filterRef = useRef<HTMLDivElement>(null)
 
@@ -93,7 +95,10 @@ export function GamesClient({ games, playedIds, wishlistedIds, isLoggedIn }: Pro
           <h1 className="text-xl font-bold text-foreground">머더 미스터리 검색</h1>
           <p className="text-sm text-muted-foreground">{games.length}개의 게임</p>
         </div>
-        <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--card)] text-sm text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors whitespace-nowrap">
+        <button
+          onClick={() => setShowSubmitModal(true)}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--card)] text-sm text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors whitespace-nowrap"
+        >
           <Plus size={14} />
           새로운 머미 추가
         </button>
@@ -299,6 +304,9 @@ export function GamesClient({ games, playedIds, wishlistedIds, isLoggedIn }: Pro
           game={selectedGame}
           onClose={() => setSelectedGame(null)}
         />
+      )}
+      {showSubmitModal && (
+        <SubmitGameModal onClose={() => setShowSubmitModal(false)} />
       )}
     </div>
   )
