@@ -164,7 +164,6 @@ export function AddPlayRecordModal({ game, onClose, existingRecord, existingRevi
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!memo.trim()) return
     if (!skipReview && !comment.trim()) return
     setError('')
     startTransition(async () => {
@@ -322,18 +321,14 @@ export function AddPlayRecordModal({ game, onClose, existingRecord, existingRevi
             {/* 메모 */}
             <div>
               <label className="text-xs font-medium text-muted-foreground mb-1.5 flex items-center gap-1.5">
-                <FileText size={11} /> 메모
+                <FileText size={11} /> 메모 <span className="opacity-50">(선택)</span>
               </label>
               <textarea
                 value={memo}
                 onChange={e => setMemo(e.target.value)}
                 placeholder="플레이 소감, 기억하고 싶은 것들..."
                 rows={2}
-                className={`w-full px-3 py-2.5 rounded-lg bg-[var(--background)] border text-foreground placeholder:text-muted-foreground/50 text-sm focus:outline-none transition-colors resize-none ${
-                  !memo.trim()
-                    ? 'border-red-400 focus:border-red-400'
-                    : 'border-[var(--border)] focus:border-primary/60'
-                }`}
+                className="w-full px-3 py-2.5 rounded-lg bg-[var(--background)] border border-[var(--border)] text-foreground placeholder:text-muted-foreground/50 text-sm focus:outline-none focus:border-primary/60 transition-colors resize-none"
               />
             </div>
 
