@@ -104,7 +104,6 @@ export function FeedbackButton() {
             )}
           </div>
         </div>
-    </div>
   ) : null
 
   return (
