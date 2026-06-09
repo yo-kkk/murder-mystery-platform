@@ -14,7 +14,6 @@ function toGame(data: Row): Game {
     title: data['title'] as string,
     subtitle: (data['subtitle'] as string | null) ?? undefined,
     description: data['description'] as string,
-    themes: data['themes'] as Game['themes'],
     minPlayers: data['min_players'] as number,
     maxPlayers: data['max_players'] as number,
     recMinPlayers: (data['rec_min_players'] as number | null) ?? undefined,

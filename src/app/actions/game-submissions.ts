@@ -7,7 +7,6 @@ export async function submitGame(formData: {
   title: string
   subtitle?: string
   description: string
-  themes: string[]
   minPlayers: number
   maxPlayers: number
   durationMinutes: number
@@ -25,7 +24,6 @@ export async function submitGame(formData: {
     title: formData.title,
     subtitle: formData.subtitle || null,
     description: formData.description,
-    themes: formData.themes,
     min_players: formData.minPlayers,
     max_players: formData.maxPlayers,
     duration_minutes: formData.durationMinutes,
@@ -60,7 +58,6 @@ export async function approveSubmission(submissionId: string) {
     title: sub.title,
     subtitle: sub.subtitle,
     description: sub.description,
-    themes: sub.themes,
     min_players: sub.min_players,
     max_players: sub.max_players,
     rec_min_players: sub.rec_min_players,

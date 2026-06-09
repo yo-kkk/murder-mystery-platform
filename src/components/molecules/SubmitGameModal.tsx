@@ -4,16 +4,6 @@ import { useState, useTransition } from 'react'
 import { X, Plus } from 'lucide-react'
 import { submitGame } from '@/app/actions/game-submissions'
 
-const THEME_OPTIONS = [
-  { value: 'victorian', label: '빅토리안' },
-  { value: 'modern', label: '현대' },
-  { value: 'fantasy', label: '판타지' },
-  { value: 'horror', label: '호러' },
-  { value: 'comedy', label: '코미디' },
-  { value: 'historical', label: '역사' },
-  { value: 'scifi', label: 'SF' },
-]
-
 interface Props {
   onClose: () => void
 }
@@ -26,7 +16,6 @@ export function SubmitGameModal({ onClose }: Props) {
   const [title, setTitle] = useState('')
   const [subtitle, setSubtitle] = useState('')
   const [description, setDescription] = useState('')
-  const [themes, setThemes] = useState<string[]>([])
   const [minPlayers, setMinPlayers] = useState(2)
   const [maxPlayers, setMaxPlayers] = useState(6)
   const [duration, setDuration] = useState(60)
@@ -34,10 +23,6 @@ export function SubmitGameModal({ onClose }: Props) {
   const [requiresGm, setRequiresGm] = useState(false)
   const [publisher, setPublisher] = useState('')
   const [releaseYear, setReleaseYear] = useState('')
-
-  function toggleTheme(v: string) {
-    setThemes(p => p.includes(v) ? p.filter(t => t !== v) : [...p, v])
-  }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -48,7 +33,6 @@ export function SubmitGameModal({ onClose }: Props) {
         title: title.trim(),
         subtitle: subtitle.trim() || undefined,
         description: description.trim(),
-        themes,
         minPlayers,
         maxPlayers,
         durationMinutes: duration,
@@ -102,20 +86,6 @@ export function SubmitGameModal({ onClose }: Props) {
               <div>
                 <label className="text-xs font-medium text-muted-foreground mb-1.5 block">게임 설명 *</label>
                 <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="스토리, 배경, 특징 등" rows={3} className={`${inputClass} resize-none`} />
-              </div>
-            </div>
-
-            {/* 테마 */}
-            <div>
-              <label className="text-xs font-medium text-muted-foreground mb-2 block">테마 <span className="opacity-50">(복수 선택)</span></label>
-              <div className="flex flex-wrap gap-1.5">
-                {THEME_OPTIONS.map(({ value, label }) => (
-                  <button key={value} type="button" onClick={() => toggleTheme(value)}
-                    className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${themes.includes(value) ? 'border-primary text-primary bg-primary/10' : 'border-[var(--border)] text-muted-foreground hover:border-primary/40'}`}
-                  >
-                    {label}
-                  </button>
-                ))}
               </div>
             </div>
 

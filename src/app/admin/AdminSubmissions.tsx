@@ -9,7 +9,6 @@ interface Submission {
   title: string
   subtitle: string | null
   description: string
-  themes: string[]
   min_players: number
   max_players: number
   duration_minutes: number
@@ -102,7 +101,6 @@ function SubmissionCard({ submission: s }: { submission: Submission }) {
           <p className="text-sm text-foreground leading-relaxed">{s.description}</p>
 
           <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
-            {s.themes.length > 0 && <div><span className="text-foreground/50">테마</span> {s.themes.join(', ')}</div>}
             {s.publisher && <div><span className="text-foreground/50">제작사</span> {s.publisher}</div>}
             {s.release_year && <div><span className="text-foreground/50">출시연도</span> {s.release_year}</div>}
             {s.max_duration_minutes && <div><span className="text-foreground/50">최대 시간</span> {s.max_duration_minutes}분</div>}

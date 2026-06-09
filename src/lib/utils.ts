@@ -1,33 +1,9 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
-import type { Difficulty, Theme, VenueType } from '@/types'
+import type { VenueType } from '@/types'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
-}
-
-export const DIFFICULTY_LABEL: Record<Difficulty, string> = {
-  beginner: '초급',
-  intermediate: '중급',
-  advanced: '고급',
-  expert: '전문가',
-}
-
-export const DIFFICULTY_COLOR: Record<Difficulty, string> = {
-  beginner: 'text-emerald-400',
-  intermediate: 'text-yellow-400',
-  advanced: 'text-orange-400',
-  expert: 'text-red-500',
-}
-
-export const THEME_LABEL: Record<Theme, string> = {
-  victorian: '빅토리안',
-  modern: '현대',
-  fantasy: '판타지',
-  horror: '공포',
-  comedy: '코미디',
-  historical: '역사',
-  scifi: 'SF',
 }
 
 export const VENUE_TYPE_LABEL: Record<VenueType, string> = {

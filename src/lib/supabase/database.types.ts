@@ -7,8 +7,6 @@ export type Database = {
           title: string
           subtitle: string | null
           description: string
-          themes: string[]
-          difficulty: 'beginner' | 'intermediate' | 'advanced' | 'expert'
           min_players: number
           max_players: number
           duration_minutes: number
@@ -65,8 +63,6 @@ export type Database = {
           user_id: string
           game_id: string
           rating: number
-          difficulty_rating: number
-          atmosphere_rating: number
           comment: string
           is_spoiler: boolean
           created_at: string

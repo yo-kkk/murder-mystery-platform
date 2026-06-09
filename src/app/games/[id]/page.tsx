@@ -2,9 +2,8 @@ import { notFound } from 'next/navigation'
 import { ArrowLeft, Users, Clock, MapPin, Building2 } from 'lucide-react'
 import { ReviewsSection } from '@/components/molecules/ReviewsSection'
 import Link from 'next/link'
-import { Badge } from '@/components/ui/badge'
 import { StarRating } from '@/components/atoms/StarRating'
-import { THEME_LABEL, VENUE_TYPE_LABEL, formatDurationRange } from '@/lib/utils'
+import { VENUE_TYPE_LABEL, formatDurationRange } from '@/lib/utils'
 import { getGameByShortId, getGames, getVenuesByGame } from '@/lib/supabase/queries'
 import { createClient } from '@/lib/supabase/server'
 import { RecordButton } from '@/components/molecules/RecordButton'
@@ -136,20 +135,6 @@ export default async function GameDetailPage({ params }: { params: Promise<{ id:
             {formatDurationRange(game.durationMinutes, game.maxDurationMinutes)}
           </div>
         </div>
-      </div>
-
-      {/* Tags */}
-      <div className="flex flex-wrap gap-2">
-        {game.themes.map(theme => (
-          <Badge key={theme} variant="outline" className="border-[var(--border)] text-muted-foreground">
-            {THEME_LABEL[theme]}
-          </Badge>
-        ))}
-        {game.requiresGm && (
-          <Badge variant="outline" className="border-yellow-500/50 text-yellow-500">
-            GM 필수
-          </Badge>
-        )}
       </div>
 
       {/* Description */}

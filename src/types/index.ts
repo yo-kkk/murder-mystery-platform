@@ -1,5 +1,3 @@
-export type Difficulty = 'beginner' | 'intermediate' | 'advanced' | 'expert'
-export type Theme = 'victorian' | 'modern' | 'fantasy' | 'horror' | 'comedy' | 'historical' | 'scifi'
 export type VenueType = 'party_room' | 'board_game_cafe' | 'escape_room' | 'home' | 'online'
 
 export interface Game {
@@ -8,7 +6,6 @@ export interface Game {
   title: string
   subtitle?: string
   description: string
-  themes: Theme[]
   minPlayers: number
   maxPlayers: number
   recMinPlayers?: number

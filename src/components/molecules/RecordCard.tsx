@@ -58,7 +58,6 @@ export function RecordCard({ record, game, review }: RecordCardProps) {
     avgRating: game.avg_rating,
     subtitle: undefined,
     description: '',
-    themes: [] as any,
     minPlayers: game.min_players,
     maxPlayers: game.max_players,
     durationMinutes: game.duration_minutes,
