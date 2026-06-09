@@ -72,11 +72,7 @@ export function GameCard({ game, isPlayed, className, overlay }: GameCardProps) 
             )}
           </div>
 
-          <div className="flex items-center gap-3 text-xs text-muted-foreground pt-1">
-            <span className="flex items-center gap-1">
-              <Clock size={11} />
-              {formatDurationRange(game.durationMinutes, game.maxDurationMinutes)}
-            </span>
+          <div className="space-y-0.5 text-xs text-muted-foreground pt-1">
             <span className="flex items-center gap-1">
               <Users size={11} />
               {game.minPlayers === game.maxPlayers
@@ -85,6 +81,10 @@ export function GameCard({ game, isPlayed, className, overlay }: GameCardProps) 
               {game.requiresGm && (
                 <span className="ml-0.5 text-[10px] px-1.5 py-0.5 rounded border border-yellow-500/50 text-yellow-500 leading-none">GM필수</span>
               )}
+            </span>
+            <span className="flex items-center gap-1">
+              <Clock size={11} />
+              {formatDurationRange(game.durationMinutes, game.maxDurationMinutes)}
             </span>
           </div>
         </div>

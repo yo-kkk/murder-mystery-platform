@@ -6,7 +6,12 @@ export const dynamic = 'force-dynamic'
 
 export default async function GamesPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+
+  // auth + games 병렬
+  const [{ data: { user } }, games] = await Promise.all([
+    supabase.auth.getUser(),
+    getGames(),
+  ])
 
   let playedIds: string[] = []
   let wishlistedIds: string[] = []
@@ -18,8 +23,6 @@ export default async function GamesPage() {
     playedIds = (played ?? []).map((r: any) => r.game_id)
     wishlistedIds = (wishlisted ?? []).map((r: any) => r.game_id)
   }
-
-  const games = await getGames()
 
   return <GamesClient games={games} playedIds={playedIds} wishlistedIds={wishlistedIds} isLoggedIn={!!user} />
 }

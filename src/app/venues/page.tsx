@@ -9,10 +9,13 @@ export const dynamic = 'force-dynamic'
 
 export default async function VenuesPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return <LoginRequiredOverlay />
 
-  const venues = await getVenues()
+  // auth + venues 병렬
+  const [{ data: { user } }, venues] = await Promise.all([
+    supabase.auth.getUser(),
+    getVenues(),
+  ])
+  if (!user) return <LoginRequiredOverlay />
 
   return (
     <div className="space-y-6">

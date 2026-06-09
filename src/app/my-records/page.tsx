@@ -12,39 +12,41 @@ export default async function MyRecordsPage() {
 
   if (!user) return <LoginRequiredOverlay />
 
-  // 기록 + 게임 + 리뷰 조회
-  const { data: records } = await supabase
-    .from('play_records')
-    .select(`
-      id,
-      played_at,
-      venue_name,
-      companions,
-      memo,
-      image_urls,
-      is_best,
-      game:games (
+  // 기록 + wishlist 병렬
+  const [{ data: records }, { count: wishlistCount }] = await Promise.all([
+    supabase
+      .from('play_records')
+      .select(`
         id,
-        short_id,
-        title,
-        avg_rating,
-        min_players,
-        max_players,
-        duration_minutes,
-        max_duration_minutes,
-        requires_gm
-      )
-    `)
-    .eq('user_id', user.id)
-    .order('played_at', { ascending: false })
-
-  const gameIds = (records ?? []).map((r: any) => r.game?.id).filter(Boolean)
-  const [{ data: reviews }, { count: wishlistCount }] = await Promise.all([
-    gameIds.length
-      ? supabase.from('reviews').select('id, game_id, rating, comment, tags, is_public, is_best').eq('user_id', user.id).in('game_id', gameIds)
-      : Promise.resolve({ data: [] }),
+        played_at,
+        venue_name,
+        companions,
+        memo,
+        image_urls,
+        is_best,
+        game:games (
+          id,
+          short_id,
+          title,
+          avg_rating,
+          min_players,
+          max_players,
+          duration_minutes,
+          max_duration_minutes,
+          requires_gm
+        )
+      `)
+      .eq('user_id', user.id)
+      .order('played_at', { ascending: false }),
     supabase.from('wishlists').select('id', { count: 'exact', head: true }).eq('user_id', user.id),
   ])
+
+  const gameIds = (records ?? []).map((r: any) => r.game?.id).filter(Boolean)
+  const { data: reviews } = await (
+    gameIds.length
+      ? supabase.from('reviews').select('id, game_id, rating, comment, tags, is_public, is_best').eq('user_id', user.id).in('game_id', gameIds)
+      : Promise.resolve({ data: [] })
+  )
 
   const reviewMap = new Map((reviews ?? []).map((r: any) => [r.game_id, r]))
   const enriched = (records ?? []).filter((r: any) => r.game)
