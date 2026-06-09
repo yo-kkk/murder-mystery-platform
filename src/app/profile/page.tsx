@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { LoginRequiredOverlay } from '@/components/molecules/LoginRequiredOverlay'
 import { LogoutButton } from './LogoutButton'
@@ -12,7 +13,7 @@ export default async function ProfilePage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('nickname, is_nickname_public')
+    .select('nickname, is_nickname_public, is_admin')
     .eq('id', user.id)
     .single()
 
@@ -43,6 +44,15 @@ export default async function ProfilePage() {
           </div>
         </div>
       </div>
+
+      {profile?.is_admin && (
+        <Link
+          href="/admin"
+          className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-primary/40 text-primary text-sm font-medium hover:bg-primary/10 transition-colors"
+        >
+          어드민 페이지
+        </Link>
+      )}
 
       <LogoutButton />
     </div>
