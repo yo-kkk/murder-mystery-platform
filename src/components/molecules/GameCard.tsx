@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Users, Clock, Skull } from 'lucide-react'
+import { Users, Clock } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { StarRating } from '@/components/atoms/StarRating'
 import { cn, formatDurationRange } from '@/lib/utils'
@@ -18,33 +18,22 @@ export function GameCard({ game, isPlayed, className, overlay }: GameCardProps) 
       <div
         className={cn(
           'group relative rounded-lg border border-[var(--border)] bg-[var(--card)] overflow-hidden',
-          'hover:border-primary/60 hover:bg-[var(--card-hover,#1E1E38)] transition-all duration-200',
+          'hover:border-primary/60 transition-all duration-200',
           'cursor-pointer',
           className
         )}
-        style={{ '--card-hover': '#1E1E38' } as React.CSSProperties}
       >
-        {/* Image area */}
-        <div className="relative h-36 bg-gradient-to-br from-[var(--card)] to-black/80 flex items-center justify-center">
-          <Skull
-            size={48}
-            className="text-primary/30 group-hover:text-primary/50 transition-colors"
-          />
-          {isPlayed && (
-            <div className="absolute top-2 right-2">
-              <Badge className="bg-yellow-500/90 text-black text-xs">졸업</Badge>
-            </div>
-          )}
-          {overlay && (
-            <div className="absolute top-2 left-2 z-10" onClick={e => e.preventDefault()}>
-              {overlay}
-            </div>
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-[var(--card)] to-transparent" />
-        </div>
-
         {/* Content */}
         <div className="p-3 space-y-2">
+          {/* Badges row */}
+          {(isPlayed || overlay) && (
+            <div className="flex items-center justify-between">
+              <div onClick={e => e.preventDefault()}>{overlay}</div>
+              {isPlayed && (
+                <Badge className="bg-yellow-500/90 text-black text-xs ml-auto">졸업</Badge>
+              )}
+            </div>
+          )}
           <div>
             <h3 className="font-semibold text-foreground text-base leading-tight">{game.title}</h3>
             {game.subtitle && (

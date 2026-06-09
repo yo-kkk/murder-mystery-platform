@@ -282,7 +282,7 @@ export function GamesClient({ games, playedIds, wishlistedIds, isLoggedIn }: Pro
                 {isLoggedIn && !playedIds.includes(game.id) && (
                   <button
                     onClick={() => setSelectedGame(game)}
-                    className="absolute bottom-2 right-2 px-2.5 py-1 rounded-md bg-primary text-white text-[10px] font-semibold opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="absolute bottom-2 right-2 px-2.5 py-1 rounded-md bg-primary text-white text-[10px] font-semibold opacity-0 group-hover:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity"
                   >
                     기록하기
                   </button>
