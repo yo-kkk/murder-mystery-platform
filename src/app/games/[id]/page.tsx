@@ -34,6 +34,8 @@ export default async function GameDetailPage({ params }: { params: Promise<{ id:
   const [
     publicReviewsData,
     userData,
+    { count: interestCount },
+    { count: recommendCount },
   ] = await Promise.all([
     supabase
       .from('reviews')
@@ -44,9 +46,11 @@ export default async function GameDetailPage({ params }: { params: Promise<{ id:
     user ? Promise.all([
       supabase.from('play_records').select('id, played_at, venue_name, companions, memo, image_urls, is_best').eq('user_id', user.id).eq('game_id', game.id).maybeSingle(),
       supabase.from('reviews').select('id, rating, comment, tags, is_public, is_best, created_at').eq('user_id', user.id).eq('game_id', game.id).maybeSingle(),
-      supabase.from('wishlists').select('id').eq('user_id', user.id).eq('game_id', game.id).maybeSingle(),
+      supabase.from('wishlists').select('id, type').eq('user_id', user.id).eq('game_id', game.id),
       supabase.from('profiles').select('nickname, is_nickname_public').eq('id', user.id).single(),
     ]) : Promise.resolve(null),
+    supabase.from('wishlists').select('id', { count: 'exact', head: true }).eq('game_id', game.id).eq('type', 'interest'),
+    supabase.from('wishlists').select('id', { count: 'exact', head: true }).eq('game_id', game.id).eq('type', 'recommend'),
   ])
 
   const rawReviews = publicReviewsData.data ?? []
@@ -71,12 +75,14 @@ export default async function GameDetailPage({ params }: { params: Promise<{ id:
 
   let existingRecord = null
   let existingReview = null
-  let isWishlisted = false
+  let isInterested = false
+  let isRecommended = false
 
   if (user && userData) {
-    const [{ data: record }, { data: review }, { data: wishlist }, { data: profile }] = userData
+    const [{ data: record }, { data: review }, { data: wishlistData }, { data: profile }] = userData
     existingRecord = record
-    isWishlisted = !!wishlist
+    isInterested = (wishlistData ?? []).some((w: any) => w.type === 'interest')
+    isRecommended = (wishlistData ?? []).some((w: any) => w.type === 'recommend')
 
     if (review) {
       const nickname = profile?.is_nickname_public && profile?.nickname ? profile.nickname : '(비공개 유저)'
@@ -91,16 +97,12 @@ export default async function GameDetailPage({ params }: { params: Promise<{ id:
         <ArrowLeft size={15} /> 목록으로
       </Link>
 
-      {/* Hero */}
-      <div className="relative rounded-xl overflow-hidden border border-[var(--border)]">
-        <div className="h-48 bg-gradient-to-br from-[var(--card)] via-primary/10 to-black flex items-end p-5">
-          <div className="space-y-1">
-            <h1 className="text-2xl font-bold text-foreground" style={{ fontFamily: 'var(--font-serif)' }}>
-              {game.title}
-            </h1>
-            {game.subtitle && <p className="text-sm text-muted-foreground">{game.subtitle}</p>}
-          </div>
-        </div>
+      {/* Title */}
+      <div className="space-y-1 py-2">
+        <h1 className="text-2xl font-bold text-foreground" style={{ fontFamily: 'var(--font-serif)' }}>
+          {game.title}
+        </h1>
+        {game.subtitle && <p className="text-sm text-muted-foreground">{game.subtitle}</p>}
       </div>
 
       {/* Meta */}
@@ -168,12 +170,14 @@ export default async function GameDetailPage({ params }: { params: Promise<{ id:
       )}
 
       {/* Actions */}
-      <div className="flex gap-3">
+      <div className="flex gap-3 flex-wrap">
         <RecordButton game={game} isLoggedIn={!!user} existingRecord={existingRecord} existingReview={existingReview} />
         <WishlistButton
           gameId={game.id}
-          initialWishlisted={isWishlisted}
-          initialCount={game.wishlistCount}
+          initialInterested={isInterested}
+          initialRecommended={isRecommended}
+          interestCount={interestCount ?? 0}
+          recommendCount={recommendCount ?? 0}
           isLoggedIn={!!user}
           alwaysVisible
         />

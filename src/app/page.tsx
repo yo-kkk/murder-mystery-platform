@@ -18,7 +18,7 @@ export default async function HomePage() {
     user ? Promise.all([
       supabase.from('profiles').select('nickname').eq('id', user.id).single(),
       supabase.from('play_records').select('game_id').eq('user_id', user.id),
-      supabase.from('wishlists').select('game_id').eq('user_id', user.id),
+      supabase.from('wishlists').select('game_id, type').eq('user_id', user.id),
     ]) : Promise.resolve(null),
   ])
 
@@ -30,13 +30,15 @@ export default async function HomePage() {
   const { totalGames, totalReviews } = stats
 
   let playedIds: string[] = []
-  let wishlistedIds: string[] = []
+  let interestedIds: string[] = []
+  let recommendedIds: string[] = []
   let wishlistCount = 0
   if (userData) {
     const [, recordsRes, wishlistRes] = userData
-    playedIds = (recordsRes.data ?? []).map((r: { game_id: string }) => r.game_id)
-    wishlistedIds = (wishlistRes.data ?? []).map((r: { game_id: string }) => r.game_id)
-    wishlistCount = wishlistedIds.length
+    playedIds = (recordsRes.data ?? []).map((r: any) => r.game_id)
+    interestedIds = (wishlistRes.data ?? []).filter((r: any) => r.type === 'interest').map((r: any) => r.game_id)
+    recommendedIds = (wishlistRes.data ?? []).filter((r: any) => r.type === 'recommend').map((r: any) => r.game_id)
+    wishlistCount = new Set([...interestedIds, ...recommendedIds]).size
   }
 
   const playedGames = previewGames.filter(g => playedIds.includes(g.id))
@@ -87,7 +89,7 @@ export default async function HomePage() {
           </Link>
         </div>
 
-        <HomeGamePreview games={previewGames} wishlistedIds={[]} isLoggedIn={false} />
+        <HomeGamePreview games={previewGames} isLoggedIn={false} />
       </div>
     )
   }
@@ -114,8 +116,9 @@ export default async function HomePage() {
         </div>
 
         <HomeGamePreview
-          games={previewGames.filter(g => !playedIds.includes(g.id) || wishlistedIds.includes(g.id))}
-          wishlistedIds={wishlistedIds}
+          games={previewGames.filter(g => !playedIds.includes(g.id) || interestedIds.includes(g.id) || recommendedIds.includes(g.id))}
+          interestedIds={interestedIds}
+          recommendedIds={recommendedIds}
           isLoggedIn
         />
       </div>
@@ -172,8 +175,9 @@ export default async function HomePage() {
       </div>
 
       <HomeGamePreview
-        games={previewGames.filter(g => !playedIds.includes(g.id) || wishlistedIds.includes(g.id))}
-        wishlistedIds={wishlistedIds}
+        games={previewGames.filter(g => !playedIds.includes(g.id) || interestedIds.includes(g.id) || recommendedIds.includes(g.id))}
+        interestedIds={interestedIds}
+        recommendedIds={recommendedIds}
         isLoggedIn
       />
     </div>

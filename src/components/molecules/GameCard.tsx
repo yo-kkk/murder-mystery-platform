@@ -25,13 +25,9 @@ export function GameCard({ game, isPlayed, className, overlay }: GameCardProps) 
       >
         {/* Content */}
         <div className="p-3 space-y-2">
-          {/* Badges row */}
-          {(isPlayed || overlay) && (
-            <div className="flex items-center justify-between">
-              <div onClick={e => e.preventDefault()}>{overlay}</div>
-              {isPlayed && (
-                <Badge className="bg-yellow-500/90 text-black text-xs ml-auto">졸업</Badge>
-              )}
+            {isPlayed && (
+            <div className="flex justify-end">
+              <Badge className="bg-yellow-500/90 text-black text-xs">졸업</Badge>
             </div>
           )}
           <div>
@@ -76,6 +72,12 @@ export function GameCard({ game, isPlayed, className, overlay }: GameCardProps) 
               {formatDurationRange(game.durationMinutes, game.maxDurationMinutes)}
             </span>
           </div>
+
+          {overlay && (
+            <div className="pt-1 border-t border-[var(--border)] mt-1" onClick={e => e.preventDefault()}>
+              {overlay}
+            </div>
+          )}
         </div>
       </div>
     </Link>

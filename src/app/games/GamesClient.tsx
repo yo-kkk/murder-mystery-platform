@@ -33,11 +33,12 @@ const PLAYER_OPTIONS = [2, 3, 4, 5, 6, 7]
 interface Props {
   games: Game[]
   playedIds: string[]
-  wishlistedIds: string[]
+  interestedIds: string[]
+  recommendedIds: string[]
   isLoggedIn: boolean
 }
 
-export function GamesClient({ games, playedIds, wishlistedIds, isLoggedIn }: Props) {
+export function GamesClient({ games, playedIds, interestedIds, recommendedIds, isLoggedIn }: Props) {
   const searchParams = useSearchParams()
   const [query, setQuery] = useState('')
   const [page, setPage] = useState(1)
@@ -48,6 +49,7 @@ export function GamesClient({ games, playedIds, wishlistedIds, isLoggedIn }: Pro
   const [durationFilter, setDurationFilter] = useState<number | null>(null)
   const [playerFilter, setPlayerFilter] = useState<number | null>(null)
   const [wishlistFilter, setWishlistFilter] = useState(() => searchParams.get('wishlist') === 'true')
+  const wishlistedIds = [...new Set([...interestedIds, ...recommendedIds])]
   const [selectedGame, setSelectedGame] = useState<Game | null>(null)
   const [showSubmitModal, setShowSubmitModal] = useState(false)
   const sortRef = useRef<HTMLDivElement>(null)
@@ -273,8 +275,8 @@ export function GamesClient({ games, playedIds, wishlistedIds, isLoggedIn }: Pro
                   overlay={
                     <WishlistButton
                       gameId={game.id}
-                      initialWishlisted={wishlistedIds.includes(game.id)}
-                      initialCount={game.wishlistCount}
+                      initialInterested={interestedIds.includes(game.id)}
+                      initialRecommended={recommendedIds.includes(game.id)}
                       isLoggedIn={isLoggedIn}
                     />
                   }

@@ -18,11 +18,12 @@ const SORT_OPTIONS: { key: SortKey; label: string }[] = [
 
 interface Props {
   games: Game[]
-  wishlistedIds?: string[]
+  interestedIds?: string[]
+  recommendedIds?: string[]
   isLoggedIn?: boolean
 }
 
-export function HomeGamePreview({ games, wishlistedIds = [], isLoggedIn = false }: Props) {
+export function HomeGamePreview({ games, interestedIds = [], recommendedIds = [], isLoggedIn = false }: Props) {
   const [sort, setSort] = useState<SortKey>('rating')
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
@@ -72,8 +73,8 @@ export function HomeGamePreview({ games, wishlistedIds = [], isLoggedIn = false 
               overlay={
                 <WishlistButton
                   gameId={game.id}
-                  initialWishlisted={wishlistedIds.includes(game.id)}
-                  initialCount={game.wishlistCount}
+                  initialInterested={interestedIds.includes(game.id)}
+                  initialRecommended={recommendedIds.includes(game.id)}
                   isLoggedIn={isLoggedIn}
                 />
               }

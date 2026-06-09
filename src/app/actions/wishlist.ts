@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 
-export async function toggleWishlist(gameId: string) {
+export async function toggleWishlist(gameId: string, type: 'interest' | 'recommend' = 'interest') {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: '로그인이 필요해요.' }
@@ -13,6 +13,7 @@ export async function toggleWishlist(gameId: string) {
     .select('id')
     .eq('user_id', user.id)
     .eq('game_id', gameId)
+    .eq('type', type)
     .maybeSingle()
 
   if (existing) {
@@ -20,7 +21,7 @@ export async function toggleWishlist(gameId: string) {
     revalidatePath('/games')
     return { wishlisted: false }
   } else {
-    await supabase.from('wishlists').insert({ user_id: user.id, game_id: gameId })
+    await supabase.from('wishlists').insert({ user_id: user.id, game_id: gameId, type })
     revalidatePath('/games')
     return { wishlisted: true }
   }

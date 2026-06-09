@@ -14,15 +14,25 @@ export default async function GamesPage() {
   ])
 
   let playedIds: string[] = []
-  let wishlistedIds: string[] = []
+  let interestedIds: string[] = []
+  let recommendedIds: string[] = []
   if (user) {
     const [{ data: played }, { data: wishlisted }] = await Promise.all([
       supabase.from('play_records').select('game_id').eq('user_id', user.id),
-      supabase.from('wishlists').select('game_id').eq('user_id', user.id),
+      supabase.from('wishlists').select('game_id, type').eq('user_id', user.id),
     ])
     playedIds = (played ?? []).map((r: any) => r.game_id)
-    wishlistedIds = (wishlisted ?? []).map((r: any) => r.game_id)
+    interestedIds = (wishlisted ?? []).filter((r: any) => r.type === 'interest').map((r: any) => r.game_id)
+    recommendedIds = (wishlisted ?? []).filter((r: any) => r.type === 'recommend').map((r: any) => r.game_id)
   }
 
-  return <GamesClient games={games} playedIds={playedIds} wishlistedIds={wishlistedIds} isLoggedIn={!!user} />
+  return (
+    <GamesClient
+      games={games}
+      playedIds={playedIds}
+      interestedIds={interestedIds}
+      recommendedIds={recommendedIds}
+      isLoggedIn={!!user}
+    />
+  )
 }
