@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { MessageSquarePlus, X, Send, Loader2 } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import { submitFeedback } from '@/app/actions/feedback'
@@ -46,19 +47,8 @@ export function FeedbackButton() {
     if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') handleSubmit()
   }
 
-  return (
-    <>
-      <button
-        onClick={() => setOpen(true)}
-        className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg border border-[var(--border)] text-muted-foreground hover:border-primary/50 hover:text-primary transition-colors"
-        title="의견 제시"
-      >
-        <MessageSquarePlus size={13} />
-        <span>의견</span>
-      </button>
-
-      {open && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
+  const modal = open ? (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setOpen(false)} />
           <div className="relative w-full max-w-sm rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-2xl p-5 space-y-4">
             {/* Header */}
@@ -114,7 +104,22 @@ export function FeedbackButton() {
             )}
           </div>
         </div>
-      )}
+    </div>
+  ) : null
+
+  return (
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg border border-[var(--border)] text-muted-foreground hover:border-primary/50 hover:text-primary transition-colors"
+        title="의견 제시"
+      >
+        <MessageSquarePlus size={13} />
+        <span>의견</span>
+      </button>
+      {typeof document !== 'undefined' && modal
+        ? createPortal(modal, document.body)
+        : null}
     </>
   )
 }
