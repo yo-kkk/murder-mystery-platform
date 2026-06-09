@@ -30,7 +30,7 @@ export default function RootLayout({
       <body className="min-h-full bg-black flex justify-center">
         <div className="w-full max-w-2xl min-h-screen flex flex-col bg-[var(--background)] relative">
           <Header />
-          <main className="flex-1 flex flex-col px-4 py-6 pb-24 md:pb-6">
+          <main className="flex-1 flex flex-col px-4 py-6 pb-24">
             {children}
           </main>
           <BottomNav />

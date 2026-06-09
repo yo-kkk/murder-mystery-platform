@@ -28,7 +28,7 @@ export function BottomNav() {
   )
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-2xl z-50 border-t border-[var(--border)] bg-[var(--background)]/95 backdrop-blur-sm">
+    <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-2xl z-50 border-t border-[var(--border)] bg-[var(--background)]/95 backdrop-blur-sm">
       <div className="flex items-center justify-around h-16 px-2">
         {navItems.map(({ href, label, icon: Icon, match }) => {
           const active = match(pathname)
