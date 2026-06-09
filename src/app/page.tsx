@@ -4,12 +4,24 @@ import { HomeGamePreview } from '@/components/molecules/HomeGamePreview'
 import { createClient } from '@/lib/supabase/server'
 import { getGames } from '@/lib/supabase/queries'
 import { supabase as publicClient } from '@/lib/supabase/client'
+import { redirect } from 'next/navigation'
 
-export const revalidate = 60
+export const dynamic = 'force-dynamic'
 
 export default async function HomePage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
+
+  if (user) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('nickname')
+      .eq('id', user.id)
+      .single()
+    if (!profile?.nickname) {
+      redirect('/onboarding')
+    }
+  }
 
   const allGames = await getGames()
 
