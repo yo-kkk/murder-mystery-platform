@@ -37,13 +37,14 @@ interface RecordCardProps {
     requires_gm: boolean
   }
   review: Review | null
+  defaultExpanded?: boolean
 }
 
-export function RecordCard({ record, game, review }: RecordCardProps) {
+export function RecordCard({ record, game, review, defaultExpanded = false }: RecordCardProps) {
   const [editOpen, setEditOpen] = useState(false)
   const [focusReview, setFocusReview] = useState(false)
-  const [memoOpen, setMemoOpen] = useState(false)
-  const [commentOpen, setCommentOpen] = useState(false)
+  const [memoOpen, setMemoOpen] = useState(defaultExpanded)
+  const [commentOpen, setCommentOpen] = useState(defaultExpanded)
 
   const playedDate = record.played_at ? formatDate(record.played_at) : null
   const playerRange = game.min_players === game.max_players

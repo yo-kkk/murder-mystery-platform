@@ -287,6 +287,7 @@ export function RecordsSearch({ records, reviewMap }: Props) {
               record={record}
               game={record.game}
               review={reviewMap[record.game.id] ?? null}
+              defaultExpanded={true}
             />
           ))}
         </div>
