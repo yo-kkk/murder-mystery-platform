@@ -58,7 +58,7 @@ export function FeedbackButton() {
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-[100] flex items-end justify-center sm:items-center px-4 pb-6 sm:pb-0">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setOpen(false)} />
           <div className="relative w-full max-w-sm rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-2xl p-5 space-y-4">
             {/* Header */}
