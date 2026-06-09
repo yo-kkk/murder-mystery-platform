@@ -35,8 +35,7 @@ export default function OnboardingPage() {
 
     const { error: updateError } = await supabase
       .from('profiles')
-      .update({ nickname: trimmed, is_nickname_public: isPublic })
-      .eq('id', user.id)
+      .upsert({ id: user.id, nickname: trimmed, is_nickname_public: isPublic })
 
     if (updateError) {
       setError('저장 중 오류가 발생했어요. 다시 시도해주세요.')
