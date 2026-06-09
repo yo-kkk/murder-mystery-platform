@@ -3,6 +3,7 @@ import { BookOpen, Search } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { RecordsSearch } from '@/components/molecules/RecordsSearch'
 import { LoginRequiredOverlay } from '@/components/molecules/LoginRequiredOverlay'
+import { AddRecordButton } from '@/components/molecules/AddRecordButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -56,12 +57,15 @@ export default async function MyRecordsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="space-y-1">
-        <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
-          <BookOpen size={20} className="text-primary" />
-          내 플레이 기록
-        </h1>
-        <p className="text-sm text-muted-foreground">총 {enriched.length}개의 게임을 플레이했어요</p>
+      <div className="flex items-start justify-between gap-3">
+        <div className="space-y-1">
+          <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
+            <BookOpen size={20} className="text-primary" />
+            내 플레이 기록
+          </h1>
+          <p className="text-sm text-muted-foreground">총 {enriched.length}개의 게임을 플레이했어요</p>
+        </div>
+        <AddRecordButton />
       </div>
 
       {/* Stats */}
