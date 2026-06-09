@@ -21,27 +21,36 @@ export default async function GameDetailPage({ params }: { params: Promise<{ id:
   const { id } = await params
 
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
 
-  const [game, venues] = await Promise.all([
+  // Batch 1: auth + game + venues 병렬
+  const [{ data: { user } }, game, venues] = await Promise.all([
+    supabase.auth.getUser(),
     getGameByShortId(id),
     getVenuesByGame(id),
   ])
 
   if (!game) notFound()
 
-  let existingRecord = null
-  let existingReview = null
-  let isWishlisted = false
+  // Batch 2: 공개 리뷰 + 유저 데이터 병렬
+  const [
+    publicReviewsData,
+    userData,
+  ] = await Promise.all([
+    supabase
+      .from('reviews')
+      .select('id, rating, comment, tags, is_best, created_at, user_id')
+      .eq('game_id', game.id)
+      .eq('is_public', true)
+      .order('created_at', { ascending: false }),
+    user ? Promise.all([
+      supabase.from('play_records').select('id, played_at, venue_name, companions, memo, image_urls, is_best').eq('user_id', user.id).eq('game_id', game.id).maybeSingle(),
+      supabase.from('reviews').select('id, rating, comment, tags, is_public, is_best, created_at').eq('user_id', user.id).eq('game_id', game.id).maybeSingle(),
+      supabase.from('wishlists').select('id').eq('user_id', user.id).eq('game_id', game.id).maybeSingle(),
+      supabase.from('profiles').select('nickname, is_nickname_public').eq('id', user.id).single(),
+    ]) : Promise.resolve(null),
+  ])
 
-  const { data: publicReviews } = await supabase
-    .from('reviews')
-    .select('id, rating, comment, tags, is_best, created_at, user_id')
-    .eq('game_id', game.id)
-    .eq('is_public', true)
-    .order('created_at', { ascending: false })
-
-  const rawReviews = publicReviews ?? []
+  const rawReviews = publicReviewsData.data ?? []
 
   let reviews: { id: string; rating: number; comment: string | null; tags: string[]; is_best: boolean; created_at: string; nickname: string }[] = []
 
@@ -61,36 +70,16 @@ export default async function GameDetailPage({ params }: { params: Promise<{ id:
     })
   }
 
-  if (user) {
-    const [{ data: record }, { data: review }, { data: wishlist }] = await Promise.all([
-      supabase
-        .from('play_records')
-        .select('id, played_at, venue_name, companions, memo, image_urls, is_best')
-        .eq('user_id', user.id)
-        .eq('game_id', game.id)
-        .maybeSingle(),
-      supabase
-        .from('reviews')
-        .select('id, rating, comment, tags, is_public, is_best, created_at')
-        .eq('user_id', user.id)
-        .eq('game_id', game.id)
-        .maybeSingle(),
-      supabase
-        .from('wishlists')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('game_id', game.id)
-        .maybeSingle(),
-    ])
+  let existingRecord = null
+  let existingReview = null
+  let isWishlisted = false
+
+  if (user && userData) {
+    const [{ data: record }, { data: review }, { data: wishlist }, { data: profile }] = userData
     existingRecord = record
     isWishlisted = !!wishlist
 
     if (review) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('nickname, is_nickname_public')
-        .eq('id', user.id)
-        .single()
       const nickname = profile?.is_nickname_public && profile?.nickname ? profile.nickname : '(비공개 유저)'
       existingReview = { ...review, nickname }
     }
