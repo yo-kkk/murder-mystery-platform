@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { LoginRequiredOverlay } from '@/components/molecules/LoginRequiredOverlay'
 import { LogoutButton } from './LogoutButton'
+import { ThemeToggle } from '@/components/molecules/ThemeToggle'
 
 export const dynamic = 'force-dynamic'
 
@@ -43,6 +44,14 @@ export default async function ProfilePage() {
             <span className="text-sm text-foreground">{user.email ?? '-'}</span>
           </div>
         </div>
+      </div>
+
+      <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5 space-y-3">
+        <div className="space-y-1">
+          <p className="text-sm font-semibold text-foreground">화면 설정</p>
+          <p className="text-xs text-muted-foreground">테마를 선택하세요</p>
+        </div>
+        <ThemeToggle />
       </div>
 
       {profile?.is_admin && (
