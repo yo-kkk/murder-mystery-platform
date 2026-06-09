@@ -60,7 +60,10 @@ export function GamesClient({ games, playedIds, wishlistedIds, isLoggedIn }: Pro
 
   const filtered = games.filter(g => {
     if (wishlistFilter && !wishlistedIds.includes(g.id)) return false
-    if (query.trim() && !g.title.toLowerCase().includes(query.toLowerCase())) return false
+    if (query.trim()) {
+      const norm = (s: string) => s.toLowerCase().replace(/\s+/g, '')
+      if (!norm(g.title).includes(norm(query))) return false
+    }
     if (durationFilter !== null) {
       const opt = DURATION_OPTIONS[durationFilter]
       const dur = g.durationMinutes

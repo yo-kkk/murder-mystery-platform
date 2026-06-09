@@ -51,13 +51,17 @@ export function RecordsSearch({ records, reviewMap }: Props) {
 
   const activeFilterCount = (durationFilter !== null ? 1 : 0) + (playerFilter !== null ? 1 : 0) + (ratingFilter !== null ? 1 : 0)
 
+  const norm = (s: string) => s.toLowerCase().replace(/\s+/g, '')
   const filtered = records.filter(r => {
-    if (query.trim() && !(
-      r.game.title.toLowerCase().includes(query.toLowerCase()) ||
-      r.memo?.toLowerCase().includes(query.toLowerCase()) ||
-      r.venue_name?.toLowerCase().includes(query.toLowerCase()) ||
-      r.companions?.some((c: string) => c.toLowerCase().includes(query.toLowerCase()))
-    )) return false
+    if (query.trim()) {
+      const q = norm(query)
+      if (!(
+        norm(r.game.title).includes(q) ||
+        (r.memo && norm(r.memo).includes(q)) ||
+        (r.venue_name && norm(r.venue_name).includes(q)) ||
+        r.companions?.some((c: string) => norm(c).includes(q))
+      )) return false
+    }
     if (durationFilter !== null) {
       const opt = DURATION_OPTIONS[durationFilter]
       const dur = r.game.duration_minutes ?? 0
