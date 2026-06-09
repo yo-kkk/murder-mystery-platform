@@ -45,7 +45,7 @@ export function RecordCard({ record, game, review }: RecordCardProps) {
   const [memoOpen, setMemoOpen] = useState(false)
   const [commentOpen, setCommentOpen] = useState(false)
 
-  const playedDate = formatDate(record.played_at)
+  const playedDate = record.played_at ? formatDate(record.played_at) : null
   const playerRange = game.min_players === game.max_players
     ? `${game.min_players}인`
     : `${game.min_players}~${game.max_players}인`
@@ -127,9 +127,11 @@ export function RecordCard({ record, game, review }: RecordCardProps) {
 
         {/* 플레이 메타 */}
         <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
-          <span className="flex items-center gap-1">
-            <Calendar size={11} /> {playedDate}
-          </span>
+          {playedDate && (
+            <span className="flex items-center gap-1">
+              <Calendar size={11} /> {playedDate}
+            </span>
+          )}
           {record.venue_name && (
             <span className="flex items-center gap-1">
               <MapPin size={11} /> {record.venue_name}

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition, useRef, useEffect } from 'react'
-import { X, CalendarIcon, MapPin, Users, FileText, Plus, ImagePlus } from 'lucide-react'
+import { X, CalendarIcon, MapPin, Users, FileText, Plus, ImagePlus, VenetianMask } from 'lucide-react'
 import { addPlayRecord, updatePlayRecord, deletePlayRecord } from '@/app/actions/play-records'
 import { StarPicker } from '@/components/atoms/StarPicker'
 import { createClient } from '@/lib/supabase/browser'
@@ -52,7 +52,7 @@ export function AddPlayRecordModal({ game, onClose, existingRecord, existingRevi
   const [isBest, setIsBest] = useState(existingRecord?.is_best ?? false)
   const [isReviewBest, setIsReviewBest] = useState(existingReview?.is_best ?? false)
   const [playedAt, setPlayedAt] = useState(
-    existingRecord ? existingRecord.played_at : new Date().toISOString().split('T')[0]
+    existingRecord ? existingRecord.played_at : ''
   )
   const [venue, setVenue] = useState(existingRecord?.venue_name ?? '')
   const [companionInput, setCompanionInput] = useState('')
@@ -67,6 +67,7 @@ export function AddPlayRecordModal({ game, onClose, existingRecord, existingRevi
   const [rating, setRating] = useState(existingReview?.rating ?? 3)
   const [comment, setComment] = useState(existingReview?.comment ?? '')
   const [isPublicReview, setIsPublicReview] = useState(existingReview?.is_public ?? true)
+  const [hasSecretTalk, setHasSecretTalk] = useState((existingReview as any)?.has_secret_talk ?? false)
   const [skipReview, setSkipReview] = useState(focusReview ? false : (isEditMode && !existingReview))
 
   useEffect(() => {
@@ -178,7 +179,7 @@ export function AddPlayRecordModal({ game, onClose, existingRecord, existingRevi
 
       const result = isEditMode
         ? await updatePlayRecord(existingRecord.id, {
-            playedAt,
+            playedAt: playedAt || undefined,
             venueName: venue || undefined,
             companions,
             memo,
@@ -191,10 +192,11 @@ export function AddPlayRecordModal({ game, onClose, existingRecord, existingRevi
             tags: skipReview ? undefined : selectedTags,
             isPublicReview: skipReview ? false : isPublicReview,
             isReviewBest: skipReview ? false : isReviewBest,
+            hasSecretTalk: skipReview ? false : hasSecretTalk,
           })
         : await addPlayRecord({
             gameId: game.id,
-            playedAt,
+            playedAt: playedAt || undefined,
             venueName: venue || undefined,
             companions,
             memo,
@@ -206,6 +208,7 @@ export function AddPlayRecordModal({ game, onClose, existingRecord, existingRevi
             tags: skipReview ? undefined : selectedTags,
             isPublicReview: skipReview ? false : isPublicReview,
             isReviewBest: skipReview ? false : isReviewBest,
+            hasSecretTalk: skipReview ? false : hasSecretTalk,
           })
 
       if (result.error) {
@@ -254,7 +257,7 @@ export function AddPlayRecordModal({ game, onClose, existingRecord, existingRevi
             {/* 날짜 */}
             <div>
               <label className="text-xs font-medium text-muted-foreground mb-1.5 flex items-center gap-1.5">
-                <CalendarIcon size={11} /> 플레이 날짜
+                <CalendarIcon size={11} /> 플레이 날짜 <span className="opacity-50">(선택)</span>
               </label>
               <input
                 type="date"
@@ -274,7 +277,7 @@ export function AddPlayRecordModal({ game, onClose, existingRecord, existingRevi
                 type="text"
                 value={venue}
                 onChange={e => setVenue(e.target.value)}
-                placeholder="예: 홍대 파티룸, 집 등"
+                placeholder="예: 신촌 파티룸, 초코블라X 등"
                 className="w-full px-3 py-2.5 rounded-lg bg-[var(--background)] border border-[var(--border)] text-foreground placeholder:text-muted-foreground/50 text-sm focus:outline-none focus:border-primary/60 transition-colors"
               />
             </div>
@@ -432,6 +435,18 @@ export function AddPlayRecordModal({ game, onClose, existingRecord, existingRevi
                 >
                   <span>👑</span>
                   <span>인생 머미</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setHasSecretTalk(p => !p)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                    hasSecretTalk
+                      ? 'bg-purple-500/15 border-purple-500/60 text-purple-400'
+                      : 'bg-[var(--background)] text-muted-foreground border-[var(--border)] hover:border-purple-500/40 hover:text-purple-400/70'
+                  }`}
+                >
+                  <VenetianMask size={12} />
+                  <span>밀담 존재</span>
                 </button>
                 {REVIEW_TAGS.map(({ emoji, label }) => {
                   const active = selectedTags.includes(label)

@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache'
 
 export async function addPlayRecord(formData: {
   gameId: string
-  playedAt: string
+  playedAt?: string
   venueName?: string
   companions: string[]
   memo: string
@@ -17,6 +17,7 @@ export async function addPlayRecord(formData: {
   tags?: string[]
   isPublicReview?: boolean
   isReviewBest?: boolean
+  hasSecretTalk?: boolean
 }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -28,7 +29,7 @@ export async function addPlayRecord(formData: {
     .insert({
       user_id: user.id,
       game_id: formData.gameId,
-      played_at: formData.playedAt,
+      played_at: formData.playedAt || null,
       venue_name: formData.venueName || null,
       companions: formData.companions,
       memo: formData.memo,
@@ -50,6 +51,7 @@ export async function addPlayRecord(formData: {
       is_spoiler: false,
       is_public: formData.isPublicReview ?? false,
       is_best: formData.isReviewBest ?? false,
+      has_secret_talk: formData.hasSecretTalk ?? false,
     })
 
     if (reviewError) console.error('리뷰 저장 실패:', reviewError)
@@ -61,7 +63,7 @@ export async function addPlayRecord(formData: {
 }
 
 export async function updatePlayRecord(id: string, formData: {
-  playedAt: string
+  playedAt?: string
   venueName?: string
   companions: string[]
   memo: string
@@ -74,6 +76,7 @@ export async function updatePlayRecord(id: string, formData: {
   tags?: string[]
   isPublicReview?: boolean
   isReviewBest?: boolean
+  hasSecretTalk?: boolean
 }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -82,7 +85,7 @@ export async function updatePlayRecord(id: string, formData: {
   const { error } = await supabase
     .from('play_records')
     .update({
-      played_at: formData.playedAt,
+      played_at: formData.playedAt || null,
       venue_name: formData.venueName || null,
       companions: formData.companions,
       memo: formData.memo,
@@ -106,6 +109,7 @@ export async function updatePlayRecord(id: string, formData: {
           is_spoiler: false,
           is_public: formData.isPublicReview ?? false,
           is_best: formData.isReviewBest ?? false,
+          has_secret_talk: formData.hasSecretTalk ?? false,
         }, { onConflict: 'user_id,game_id' })
     } else if (formData.skipReview) {
       await supabase.from('reviews')
