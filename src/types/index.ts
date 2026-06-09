@@ -8,8 +8,6 @@ export interface Game {
   description: string
   minPlayers: number
   maxPlayers: number
-  recMinPlayers?: number
-  recMaxPlayers?: number
   durationMinutes: number
   maxDurationMinutes?: number
   requiresGm: boolean

@@ -60,8 +60,6 @@ export async function approveSubmission(submissionId: string) {
     description: sub.description,
     min_players: sub.min_players,
     max_players: sub.max_players,
-    rec_min_players: sub.rec_min_players,
-    rec_max_players: sub.rec_max_players,
     duration_minutes: sub.duration_minutes,
     max_duration_minutes: sub.max_duration_minutes,
     requires_gm: sub.requires_gm,

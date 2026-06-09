@@ -16,8 +16,6 @@ function toGame(data: Row): Game {
     description: data['description'] as string,
     minPlayers: data['min_players'] as number,
     maxPlayers: data['max_players'] as number,
-    recMinPlayers: (data['rec_min_players'] as number | null) ?? undefined,
-    recMaxPlayers: (data['rec_max_players'] as number | null) ?? undefined,
     durationMinutes: data['duration_minutes'] as number,
     maxDurationMinutes: (data['max_duration_minutes'] as number | null) ?? undefined,
     requiresGm: (data['requires_gm'] as boolean) ?? false,
