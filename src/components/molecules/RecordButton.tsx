@@ -12,6 +12,7 @@ interface PlayRecord {
   companions: string[]
   memo: string | null
   image_urls: string[]
+  is_best: boolean
 }
 
 interface ExistingReview {
