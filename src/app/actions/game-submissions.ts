@@ -6,7 +6,7 @@ import { revalidatePath } from 'next/cache'
 export async function submitGame(formData: {
   title: string
   subtitle?: string
-  description: string
+  description?: string
   minPlayers: number
   maxPlayers: number
   durationMinutes: number
@@ -23,7 +23,7 @@ export async function submitGame(formData: {
     user_id: user.id,
     title: formData.title,
     subtitle: formData.subtitle || null,
-    description: formData.description,
+    description: formData.description || null,
     min_players: formData.minPlayers,
     max_players: formData.maxPlayers,
     duration_minutes: formData.durationMinutes,

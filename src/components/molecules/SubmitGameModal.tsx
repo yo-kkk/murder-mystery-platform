@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { X, Plus } from 'lucide-react'
+import { X } from 'lucide-react'
 import { submitGame } from '@/app/actions/game-submissions'
 
 interface Props {
@@ -10,7 +10,7 @@ interface Props {
 
 export function SubmitGameModal({ onClose }: Props) {
   const [isPending, startTransition] = useTransition()
-  const [done, setDone] = useState(false)
+  const [step, setStep] = useState<'form' | 'confirm' | 'done'>('form')
   const [error, setError] = useState('')
 
   const [title, setTitle] = useState('')
@@ -24,15 +24,19 @@ export function SubmitGameModal({ onClose }: Props) {
   const [publisher, setPublisher] = useState('')
   const [releaseYear, setReleaseYear] = useState('')
 
-  function handleSubmit(e: React.FormEvent) {
+  function handleRequestSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!title.trim() || !description.trim()) return
+    if (!title.trim()) return
+    setStep('confirm')
+  }
+
+  function handleConfirm() {
     setError('')
     startTransition(async () => {
       const result = await submitGame({
         title: title.trim(),
         subtitle: subtitle.trim() || undefined,
-        description: description.trim(),
+        description: description.trim() || undefined,
         minPlayers,
         maxPlayers,
         durationMinutes: duration,
@@ -41,8 +45,8 @@ export function SubmitGameModal({ onClose }: Props) {
         publisher: publisher.trim() || undefined,
         releaseYear: releaseYear ? Number(releaseYear) : undefined,
       })
-      if (result.error) { setError(result.error); return }
-      setDone(true)
+      if (result.error) { setError(result.error); setStep('form'); return }
+      setStep('done')
     })
   }
 
@@ -63,7 +67,7 @@ export function SubmitGameModal({ onClose }: Props) {
           </button>
         </div>
 
-        {done ? (
+        {step === 'done' && (
           <div className="py-8 text-center space-y-3">
             <p className="text-2xl">🎉</p>
             <p className="font-semibold text-foreground">제출 완료!</p>
@@ -72,8 +76,40 @@ export function SubmitGameModal({ onClose }: Props) {
               닫기
             </button>
           </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="space-y-4">
+        )}
+
+        {step === 'confirm' && (
+          <div className="py-6 space-y-5">
+            <div className="rounded-xl border border-[var(--border)] bg-[var(--background)] p-4 space-y-2">
+              <p className="text-sm font-semibold text-foreground">{title}</p>
+              {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
+              <p className="text-xs text-muted-foreground">{minPlayers}~{maxPlayers}인 · {duration}분{maxDuration ? `~${maxDuration}분` : ''}{requiresGm ? ' · GM필수' : ''}</p>
+            </div>
+            <div className="rounded-xl border border-primary/30 bg-primary/5 p-4 space-y-1">
+              <p className="text-sm font-medium text-foreground">검수 후 등록됩니다</p>
+              <p className="text-xs text-muted-foreground">입력하신 게임 정보는 관리자 검수를 거친 후 등록돼요. 제출하시겠어요?</p>
+            </div>
+            {error && <p className="text-sm text-red-400">{error}</p>}
+            <div className="flex gap-2">
+              <button
+                onClick={() => setStep('form')}
+                className="flex-1 py-3 rounded-lg border border-[var(--border)] text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                돌아가기
+              </button>
+              <button
+                onClick={handleConfirm}
+                disabled={isPending}
+                className="flex-1 py-3 rounded-lg bg-primary text-white font-semibold text-sm hover:bg-primary/90 transition-colors disabled:opacity-50"
+              >
+                {isPending ? '제출 중...' : '제출하기'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {step === 'form' && (
+          <form onSubmit={handleRequestSubmit} className="space-y-4">
             <div className="space-y-3">
               <div>
                 <label className="text-xs font-medium text-muted-foreground mb-1.5 block">제목 *</label>
@@ -84,7 +120,7 @@ export function SubmitGameModal({ onClose }: Props) {
                 <input value={subtitle} onChange={e => setSubtitle(e.target.value)} placeholder="부제목" className={inputClass} />
               </div>
               <div>
-                <label className="text-xs font-medium text-muted-foreground mb-1.5 block">게임 설명 *</label>
+                <label className="text-xs font-medium text-muted-foreground mb-1.5 block">게임 설명 <span className="opacity-50">(선택)</span></label>
                 <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="스토리, 배경, 특징 등" rows={3} className={`${inputClass} resize-none`} />
               </div>
             </div>
@@ -136,12 +172,10 @@ export function SubmitGameModal({ onClose }: Props) {
               </div>
             </div>
 
-            {error && <p className="text-sm text-red-400">{error}</p>}
-
-            <button type="submit" disabled={isPending || !title.trim() || !description.trim()}
+            <button type="submit" disabled={!title.trim()}
               className="w-full py-3 rounded-lg bg-primary text-white font-semibold text-sm hover:bg-primary/90 transition-colors disabled:opacity-50"
             >
-              {isPending ? '제출 중...' : '검수 요청하기'}
+              검수 요청하기
             </button>
           </form>
         )}
