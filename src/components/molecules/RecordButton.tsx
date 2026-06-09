@@ -21,7 +21,7 @@ interface ExistingReview {
   comment: string | null
   tags: string[]
   is_public: boolean
-  is_best?: boolean
+  is_best: boolean
   nickname?: string
 }
 
