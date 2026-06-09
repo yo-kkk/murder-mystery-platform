@@ -261,7 +261,7 @@ export function AddPlayRecordModal({ game, onClose, existingRecord, existingRevi
                 value={playedAt}
                 max={new Date().toISOString().split('T')[0]}
                 onChange={e => setPlayedAt(e.target.value)}
-                className="w-full px-3 py-2.5 rounded-lg bg-[var(--background)] border border-[var(--border)] text-foreground text-sm focus:outline-none focus:border-primary/60 transition-colors"
+                className="w-full px-3 py-2.5 rounded-lg bg-[var(--background)] border border-[var(--border)] text-foreground text-sm focus:outline-none focus:border-primary/60 transition-colors [color-scheme:dark]"
               />
             </div>
 
